@@ -1,2 +1,3 @@
-# final-proj
- Final team project for CS 174C 
+CS 174C - Final Project
+
+Octopus 
