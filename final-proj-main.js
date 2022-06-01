@@ -2,6 +2,7 @@ import {tiny, defs} from './examples/common.js';
 
 // Pull these names into this module's scope for convenience:
 const {vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component} = tiny;
+import {Shape_From_File} from './examples/obj-file-demo.js'
 
 // TODO: you should implement the required classes here or in another file.
 
@@ -361,7 +362,8 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.shapes = {
                 'box': new defs.Cube(),
                 'ball': new defs.Subdivision_Sphere(4),
-                'axis': new defs.Axis_Arrows()
+                'axis': new defs.Axis_Arrows(),
+                'shell': new Shape_From_File("./assets/seashell.obj")
             };
 
             // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -579,12 +581,24 @@ export class Final_Proj extends Final_Proj_base {
             // function times(), which generates products of matrices.
 
         const blue = color(0, 0, 1, 1), yellow = color(1, 0.7, 0, 1), red = color(1, 0, 0, 1);
+        const sand = color(211/255, 199/255, 162/255, 1);
+        const ocean = color(0, 105/255, 148/255, .5);
+        const shellColor = color(226/255, 223/255, 210/255, 1);
 
         const t = this.t = this.uniforms.animation_time / 1000;
 
         // !!! Draw ground
-        let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(10, 0.01, 10));
-        this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.plastic, color: yellow});
+        let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(100, 0.01, 100));
+        this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.plastic, color: sand});
+
+        //skybox
+        let skybox_transform = Mat4.scale(50, 50, 50);
+        this.shapes.ball.draw(caller, this.uniforms, skybox_transform,  {...this.materials.plastic, color: ocean});
+
+
+        //random shell
+        let shellTransform = Mat4.translation(-5, 1, -15).times(Mat4.rotation(-Math.PI/2, 0, 0, 1)).times(Mat4.rotation(-Math.PI/2, 1, 0, 0));
+        this.shapes.shell.draw(caller, this.uniforms, shellTransform, {...this.materials.metal, color: shellColor});
 
         for (let i = 0; i < this.limbs.length; i++) {
             for (let j = 0; j < this.limbs[i].particles.length; j++) {
