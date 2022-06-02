@@ -617,11 +617,11 @@ export class Final_Proj extends Final_Proj_base {
                 //draw 2 balls
                 const newPos = origPt.plus(diff.times(0.33));
                 const newPos2 = origPt.plus(diff.times(0.66));
-                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.1, .1, .1)));
-                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.1, .1, .1)));
+                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
+                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
 
-                this.shapes.ball.draw(caller, this.uniforms, transf, {...this.materials.metal, color: blue});
-                this.shapes.ball.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: blue});
+                this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: blue});
+                this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: blue});
 
             }
         }
