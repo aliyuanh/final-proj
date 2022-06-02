@@ -340,56 +340,31 @@ const Limb =
 
     };
 
+class Node {
+    constructor(name, shape, transform) {
+        this.name = name;
+        this.shape = shape;
+        this.transform_matrix = transform;
+        this.children_arcs = [];
+    }
+}
 
-export const Final_Proj_base = defs.Final_Proj_base =
-    class Final_Proj_base extends Component {
-        // **My_Demo_Base** is a Scene that can be added to any display canvas.
-        // This particular scene is broken up into two pieces for easier understanding.
-        // The piece here is the base class, which sets up the machinery to draw a simple
-        // scene demonstrating a few concepts.  A subclass of it, Assignment2,
-        // exposes only the display() method, which actually places and draws the shapes,
-        // isolating that code so it can be experimented with on its own.
-        init() {
-            console.log("init")
+class Arc {
+    constructor(name, parent, child, location) {
+        this.name = name;
+        this.parent_node = parent;
+        this.child_node = child;
+        this.location_matrix = location;
+        this.articulation_matrix = Mat4.identity();
+    }
+}
 
-            // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
-            this.hover = this.swarm = false;
-            // At the beginning of our program, load one of each of these shape
-            // definitions onto the GPU.  NOTE:  Only do this ONCE per shape it
-            // would be redundant to tell it again.  You should just re-use the
-            // one called "box" more than once in display() to draw multiple cubes.
-            // Don't define more than one blueprint for the same thing here.
-            this.shapes = {
-                'box': new defs.Cube(),
-                'ball': new defs.Subdivision_Sphere(4),
-                'axis': new defs.Axis_Arrows(),
-                'shell': new Shape_From_File("./assets/seashell.obj")
-            };
+const Octopus =
+    class Octopus {
 
-            // *** Materials: ***  A "material" used on individual shapes specifies all fields
-            // that a Shader queries to light/color it properly.  Here we use a Phong shader.
-            // We can now tweak the scalar coefficients from the Phong lighting formulas.
-            // Expected values can be found listed in Phong_Shader::update_GPU().
-            const basic = new defs.Basic_Shader();
-            const phong = new defs.Phong_Shader();
-            const tex_phong = new defs.Textured_Phong();
-            this.materials = {};
-            this.materials.plastic = {
-                shader: phong,
-                ambient: .2,
-                diffusivity: 1,
-                specularity: .5,
-                color: color(.9, .5, .9, 1)
-            }
-            this.materials.metal = {
-                shader: phong,
-                ambient: .2,
-                diffusivity: 1,
-                specularity: 1,
-                color: color(.9, .5, .9, 1)
-            }
-            this.materials.rgb = {shader: tex_phong, ambient: .5, texture: new Texture("assets/rgb.jpg")}
+        constructor(shapes) {
 
+            this.shapes = shapes;
             //Limb implementation
             this.spring_method = (p, t, x) => sym_euler(p, t, x);
             let ks = 8.9;
@@ -403,6 +378,14 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.dt = 0.02;
             this.limbs = []
             this.isRunning = true;
+
+
+            // add torso into hierarchy
+            const torso_transform = Mat4.scale(3, 3, 3);
+            this.torso_node = new Node("torso", this.shapes.ball, torso_transform);
+            const root_location = Mat4.translation(0, 12, 0);
+            this.root = new Arc("root", null, this.torso_node, root_location);
+
             const LimbTransform = Mat4.translation(0, -2, 3);
 
             this.limbs.push(new Limb(this.spring_method, LimbTransform, this.gravity));
@@ -505,6 +488,98 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.limbs[7].add_link(0, 1, ks, kd, len);
             this.limbs[7].add_link(1, 2, ks, kd, len);
             this.limbs[7].add_link(2, 3, ks, kd, len);
+        }
+
+        draw(caller, uniforms, materials) {
+            const blue = color(0, 0, 1, 1), yellow = color(1, 0.7, 0, 1), red = color(1, 0, 0, 1);
+            for (let i = 0; i < this.limbs.length; i++) {
+                for (let j = 0; j < this.limbs[i].particles.length; j++) {
+                    let particleTransform = this.limbs[i].transf.times(this.limbs[i].particles[j].transf.times(Mat4.scale(.3, .3, .3)));
+                    console.log("particle " + particleTransform);
+                    this.shapes.ball.draw(caller, uniforms, particleTransform, {...materials.plastic, color: red});
+                }
+            }
+            for (let i = 0; i < this.limbs.length; i++) {
+                for (let j = 0; j < this.limbs[i].links.length; j++) {
+                    //draw balls between the links to act as spring visual indicators (.2 radius?)
+                    const index = this.limbs[i].links[j].I;
+                    const index2 = this.limbs[i].links[j].J;
+                    const origPt = this.limbs[i].particles[index].position;
+                    const finalPt = this.limbs[i].particles[index2].position;
+                    const diff = finalPt.minus(origPt);
+                    //draw 2 balls
+                    const newPos = origPt.plus(diff.times(0.33));
+                    const newPos2 = origPt.plus(diff.times(0.66));
+                    const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
+                    const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
+    
+                    this.shapes.box.draw(caller, uniforms, transf, {...materials.metal, color: blue});
+                    this.shapes.box.draw(caller, uniforms, transf2, {...materials.metal, color: blue});
+    
+                }
+            }
+
+            // draw torso
+            const L = this.root.location_matrix;
+            const A = this.root.articulation_matrix;
+            let matrix = Mat4.identity().post_multiply(L.times(A));
+            const node = this.root.child_node;
+            const T = this.torso_node.transform_matrix;
+            matrix.post_multiply(T);
+            node.shape.draw(caller, uniforms, matrix, {...materials.plastic, color:red});
+        }
+
+    };
+
+
+export const Final_Proj_base = defs.Final_Proj_base =
+    class Final_Proj_base extends Component {
+        // **My_Demo_Base** is a Scene that can be added to any display canvas.
+        // This particular scene is broken up into two pieces for easier understanding.
+        // The piece here is the base class, which sets up the machinery to draw a simple
+        // scene demonstrating a few concepts.  A subclass of it, Assignment2,
+        // exposes only the display() method, which actually places and draws the shapes,
+        // isolating that code so it can be experimented with on its own.
+        init() {
+            console.log("init")
+
+            // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
+            this.hover = this.swarm = false;
+            // At the beginning of our program, load one of each of these shape
+            // definitions onto the GPU.  NOTE:  Only do this ONCE per shape it
+            // would be redundant to tell it again.  You should just re-use the
+            // one called "box" more than once in display() to draw multiple cubes.
+            // Don't define more than one blueprint for the same thing here.
+            this.shapes = {
+                'box': new defs.Cube(),
+                'ball': new defs.Subdivision_Sphere(4),
+                'axis': new defs.Axis_Arrows(),
+                'shell': new Shape_From_File("./assets/seashell.obj")
+            };
+
+            // *** Materials: ***  A "material" used on individual shapes specifies all fields
+            // that a Shader queries to light/color it properly.  Here we use a Phong shader.
+            // We can now tweak the scalar coefficients from the Phong lighting formulas.
+            // Expected values can be found listed in Phong_Shader::update_GPU().
+            const basic = new defs.Basic_Shader();
+            const phong = new defs.Phong_Shader();
+            const tex_phong = new defs.Textured_Phong();
+            this.materials = {};
+            this.materials.plastic = {
+                shader: phong,
+                ambient: .2,
+                diffusivity: 1,
+                specularity: .5,
+                color: color(.9, .5, .9, 1)
+            }
+            this.materials.metal = {
+                shader: phong,
+                ambient: .2,
+                diffusivity: 1,
+                specularity: 1,
+                color: color(.9, .5, .9, 1)
+            }
+            this.materials.rgb = {shader: tex_phong, ambient: .5, texture: new Texture("assets/rgb.jpg")}
 
         }
 
@@ -540,8 +615,10 @@ export const Final_Proj_base = defs.Final_Proj_base =
             const light_position = vec4(20, 20, 20, 1.0);
             this.uniforms.lights = [defs.Phong_Shader.light_source(light_position, color(1, 1, 1, 1), 1000000)];
 
+            this.octopus = new Octopus(this.shapes);
+
             // draw axis arrows.
-            this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+            // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
 
         }
     }
@@ -600,39 +677,16 @@ export class Final_Proj extends Final_Proj_base {
         let shellTransform = Mat4.translation(-5, 1, -15).times(Mat4.rotation(-Math.PI/2, 0, 0, 1)).times(Mat4.rotation(-Math.PI/2, 1, 0, 0));
         this.shapes.shell.draw(caller, this.uniforms, shellTransform, {...this.materials.metal, color: shellColor});
 
-        for (let i = 0; i < this.limbs.length; i++) {
-            for (let j = 0; j < this.limbs[i].particles.length; j++) {
-                let particleTransform = this.limbs[i].transf.times(this.limbs[i].particles[j].transf.times(Mat4.scale(.3, .3, .3)));
-                this.shapes.ball.draw(caller, this.uniforms, particleTransform, {...this.materials.metal, color: red});
-            }
-        }
-        for (let i = 0; i < this.limbs.length; i++) {
-            for (let j = 0; j < this.limbs[i].links.length; j++) {
-                //draw balls between the links to act as spring visual indicators (.2 radius?)
-                const index = this.limbs[i].links[j].I;
-                const index2 = this.limbs[i].links[j].J;
-                const origPt = this.limbs[i].particles[index].position;
-                const finalPt = this.limbs[i].particles[index2].position;
-                const diff = finalPt.minus(origPt);
-                //draw 2 balls
-                const newPos = origPt.plus(diff.times(0.33));
-                const newPos2 = origPt.plus(diff.times(0.66));
-                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
-                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
-
-                this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: blue});
-                this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: blue});
-
-            }
-        }
+        this.octopus.draw(caller, this.uniforms, this.materials);
+        
         //update with forces and stuff for next frame
-        for (let i = 0; i < this.limbs.length; i++) {
-            this.limbs[i].update();
+        for (let i = 0; i < this.octopus.limbs.length; i++) {
+            this.octopus.limbs[i].update();
         }
 
         //draw the...torso??
-        let torsoTransform = Mat4.translation(0, 12, 0).times(Mat4.scale(3, 3, 3));
-        this.shapes.ball.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color:red})
+     
+        // this.shapes.ball.draw(caller, this.uniforms, this.torsoTransform, {...this.materials.plastic, color:red})
 
     }
 
