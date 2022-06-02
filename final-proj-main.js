@@ -402,6 +402,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.ground_kd = 10.0;
             this.dt = 0.02;
             this.limbs = []
+            this.seaweed = [];
             this.isRunning = true;
             const LimbTransform = Mat4.translation(0, -2, 3);
 
@@ -506,6 +507,40 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.limbs[7].add_link(1, 2, ks, kd, len);
             this.limbs[7].add_link(2, 3, ks, kd, len);
 
+            const SeaweedTransform = [
+              Mat4.translation(0, -13, 0),
+              Mat4.translation(0, -13, 0),
+              Mat4.translation(0, -13, 0),
+              Mat4.translation(0, -13, 0),
+              Mat4.translation(0, -13, 0)
+            ];
+
+            for (let i = 0; i < 5; i++) {
+                let n = 13
+                this.seaweed.push(new Limb(this.spring_method, SeaweedTransform[i], this.gravity * -0.4))
+                this.seaweed[i].add_particle(1.5, vec3(0, 0, 0))
+                this.seaweed[i].add_particle(
+                  0.5,
+                  vec3(Math.random() * 8 - 4, n, Math.random() * 8 - 4)
+                );
+                this.seaweed[i].add_particle(
+                  0.5,
+                  vec3(Math.random() * 8 - 4, n + 1, Math.random() * 8 - 4)
+                );
+                this.seaweed[i].add_particle(
+                  0.5,
+                  vec3(Math.random() * 8 - 4, n + 2, Math.random() * 8 - 4)
+                );
+                this.seaweed[i].add_particle(
+                  0.5,
+                  vec3(Math.random() * 8 - 4, n + 3, Math.random() * 8 - 4)
+                );
+                this.seaweed[i].add_link(0, 1, ks, kd, len/2)
+                this.seaweed[i].add_link(1, 2, ks, kd, len/2)
+                this.seaweed[i].add_link(2, 3, ks, kd, len/2)
+                this.seaweed[i].add_link(3, 4, ks, kd, len/2)
+            }
+
         }
 
         render_animation(caller) {                                                // display():  Called once per frame of animation.  We'll isolate out
@@ -584,6 +619,7 @@ export class Final_Proj extends Final_Proj_base {
         const sand = color(211/255, 199/255, 162/255, 1);
         const ocean = color(0, 105/255, 148/255, .5);
         const shellColor = color(226/255, 223/255, 210/255, 1);
+        const seaweedColor = color(60/255, 130/255, 80/255, 1)
 
         const t = this.t = this.uniforms.animation_time / 1000;
 
@@ -628,6 +664,37 @@ export class Final_Proj extends Final_Proj_base {
         //update with forces and stuff for next frame
         for (let i = 0; i < this.limbs.length; i++) {
             this.limbs[i].update();
+        }
+
+        for (let i = 0; i < this.seaweed.length; i++) {
+            for (let j = 0; j < this.seaweed[i].links.length; j++) {
+                const index = this.seaweed[i].links[j].I;
+                const index2 = this.seaweed[i].links[j].J;
+                const origPt = this.seaweed[i].particles[index].position;
+                const finalPt = this.seaweed[i].particles[index2].position;
+                const diff = finalPt.minus(origPt);
+                const newPos = origPt.plus(diff.times(0.33));
+                const newPos2 = origPt.plus(diff.times(0.66));
+                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0] - 10, newPos[1] - 10, newPos[2] ).times(Mat4.scale(.2, .5, .2)));
+                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0] - 10, newPos2[1] - 10, newPos2[2] ).times(Mat4.scale(.2, .5, .2)));
+
+                this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: seaweedColor});
+                this.shapes.box.draw(caller, this.uniforms, transf2, { ...this.materials.metal, color: seaweedColor });
+                
+                const transf3 = this.limbs[i].transf.times(Mat4.translation(newPos[0] + 8, newPos[1] - 10, newPos[2] + 5 ).times(Mat4.scale(.2, .5, .2)));
+                const transf4 = this.limbs[i].transf.times(Mat4.translation(newPos2[0] + 8, newPos2[1] - 10, newPos2[2] + 5 ).times(Mat4.scale(.2, .5, .2)));
+
+                this.shapes.box.draw(caller, this.uniforms, transf3, {...this.materials.metal, color: seaweedColor});
+                this.shapes.box.draw(caller, this.uniforms, transf4, { ...this.materials.metal, color: seaweedColor });
+
+                const transf5 = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1] - 10, newPos[2] - 17 ).times(Mat4.scale(.2, .5, .2)));
+                const transf6 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1] - 10, newPos2[2] - 17 ).times(Mat4.scale(.2, .5, .2)));
+
+                this.shapes.box.draw(caller, this.uniforms, transf5, {...this.materials.metal, color: seaweedColor});
+                this.shapes.box.draw(caller, this.uniforms, transf6, { ...this.materials.metal, color: seaweedColor });
+            }
+
+            this.seaweed[i].update();
         }
 
         //draw the...torso??
