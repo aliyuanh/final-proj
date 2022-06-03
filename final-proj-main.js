@@ -791,6 +791,69 @@ export class Final_Proj extends Final_Proj_base {
         let leftIrisTransform = this.octopusPosition.times(Mat4.translation(-1.4, -1.1, 4.5).times(Mat4.scale(0.7, 0.7, 0.7)));
         this.shapes.ball.draw(caller, this.uniforms, leftIrisTransform, {...this.materials.plastic, color: black});
 
+        // draw coral
+        let model_transform = Mat4.scale(5, 5, 5);
+
+        let branch1_model = model_transform.times(Mat4.translation(-.5, 0, 1)).times(Mat4.rotation(0.8, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.4, 0.05));
+        let branch2_model = branch1_model.times(Mat4.scale(10, 2, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.1, -0.5, 0))
+                            .times(Mat4.rotation(-0.7, 0, 0, 1)).times(Mat4.translation(0.1, 0.5, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+        let branch3_model = model_transform.times(Mat4.translation(-.4, -.5, 1)).times(Mat4.rotation(0.1, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.8, 0.05));
+        let branch4_model = branch3_model.times(Mat4.scale(10, 1, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(0.5, 0, 0, 1)).times(Mat4.translation(0.25, 0.8, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+        let branch5_model = branch3_model.times(Mat4.scale(10, 0.8, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(-0.3, 0, 0, 1)).times(Mat4.translation(-0.1, 1, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+        let branch6_model = model_transform.times(Mat4.translation(-5.2, -2.4, 1)).times(Mat4.rotation(-0.2, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.5, 0.05));
+        let branch7_model = branch6_model.times(Mat4.scale(10, 2, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(-0.4, 0, 0, 1)).times(Mat4.translation(0.07, 0.5, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+        let branch8_model = branch6_model.times(Mat4.scale(10, 1, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(0.8, 0, 0, 1)).times(Mat4.translation(1, 1.2, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+        let branch9_model = model_transform.times(Mat4.translation(-5, -2.45, 1)).times(Mat4.rotation(-0.5, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.5, 0.05));
+                        
+        this.shapes.box.draw(caller, this.uniforms, branch1_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch2_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch3_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch4_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch5_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch6_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch7_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch8_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch9_model, this.materials.plastic);
+
+        model_transform = Mat4.scale(5, 5, 5);
+
+         branch1_model = model_transform.times(Mat4.translation(3.5, 0, 1)).times(Mat4.rotation(0.8, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.4, 0.05));
+         branch2_model = branch1_model.times(Mat4.scale(10, 2, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.1, -0.5, 0))
+                            .times(Mat4.rotation(-0.7, 0, 0, 1)).times(Mat4.translation(0.1, 0.5, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+         branch3_model = model_transform.times(Mat4.translation(3.6, -.5, 1)).times(Mat4.rotation(0.1, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.8, 0.05));
+         branch4_model = branch3_model.times(Mat4.scale(10, 1, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(0.5, 0, 0, 1)).times(Mat4.translation(0.25, 0.8, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+         branch5_model = branch3_model.times(Mat4.scale(10, 0.8, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(-0.3, 0, 0, 1)).times(Mat4.translation(-0.1, 1, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+         branch6_model = model_transform.times(Mat4.translation(-5.2, -2.4, 1)).times(Mat4.rotation(-0.2, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.5, 0.05));
+         branch7_model = branch6_model.times(Mat4.scale(10, 2, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(-0.4, 0, 0, 1)).times(Mat4.translation(0.07, 0.5, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+         branch8_model = branch6_model.times(Mat4.scale(10, 1, 10)).times(Mat4.translation(0, 1, 0)).times(Mat4.translation(-0.05, -0.5, 0))
+                            .times(Mat4.rotation(0.8, 0, 0, 1)).times(Mat4.translation(1, 1.2, 0)).times(Mat4.scale(0.1, 0.5, 0.1));
+         branch9_model = model_transform.times(Mat4.translation(-5, -2.45, 1)).times(Mat4.rotation(-0.5, 0, 0, 1))
+                            .times(Mat4.scale(0.05, 0.5, 0.05));
+                        
+        this.shapes.box.draw(caller, this.uniforms, branch1_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch2_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch3_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch4_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch5_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch6_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch7_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch8_model, this.materials.plastic);
+        this.shapes.box.draw(caller, this.uniforms, branch9_model, this.materials.plastic);
+
     }
 
 
@@ -828,6 +891,18 @@ export class Final_Proj extends Final_Proj_base {
             () => {
                 this.octopusDirection = Mat4.identity();
             });
+        this.key_triggered_button("Move octopus down", ["n"], () => {
+            this.octopusDirection = Mat4.translation(0, -1*this.octopusSpeed, 0);
+        }, undefined,
+        () => {
+            this.octopusDirection = Mat4.identity();
+        });
+        this.key_triggered_button("Move octopus up", ["m"], () => {
+            this.octopusDirection = Mat4.translation(0, this.octopusSpeed, 0);
+        }, undefined,
+        () => {
+            this.octopusDirection = Mat4.identity();
+        });
         this.new_line();
     }
 }
