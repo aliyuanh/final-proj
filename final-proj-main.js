@@ -622,6 +622,8 @@ export class Final_Proj extends Final_Proj_base {
         const shellColor = color(226/255, 223/255, 210/255, 1);
         const seaweedColor = color(60/255, 130/255, 80/255, 1);
         const octoColor = color(135/255, 81/255, 109/255, 1);
+        const white = color(1, 1, 1, 1);
+        const black = color(0, 0, 0, 1);
 
         const t = this.t = this.uniforms.animation_time / 1000;
 
@@ -702,7 +704,17 @@ export class Final_Proj extends Final_Proj_base {
 
         //draw the...torso??
         let torsoTransform = Mat4.translation(0, 15, 0).times(Mat4.scale(4.8, 4.2, 4.8));
-        this.shapes.octo.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: octoColor })
+        this.shapes.octo.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: octoColor });
+
+        // draw eyeballs
+        let rightEyeTransform = Mat4.translation(1.4, 14, 4).times(Mat4.scale(1, 1, 1));
+        this.shapes.ball.draw(caller, this.uniforms, rightEyeTransform, {...this.materials.plastic, color: white });
+        let rightIrisTransform = Mat4.translation(1.4, 13.9, 4.5).times(Mat4.scale(0.7, 0.7, 0.7));
+        this.shapes.ball.draw(caller, this.uniforms, rightIrisTransform, {...this.materials.plastic, color: black });
+        let leftEyeTransform = Mat4.translation(-1.4, 14, 4).times(Mat4.scale(1, 1, 1));
+        this.shapes.ball.draw(caller, this.uniforms, leftEyeTransform, {...this.materials.plastic, color: white });
+        let leftIrisTransform = Mat4.translation(-1.4, 13.9, 4.5).times(Mat4.scale(0.7, 0.7, 0.7));
+        this.shapes.ball.draw(caller, this.uniforms, leftIrisTransform, {...this.materials.plastic, color: black });
 
     }
 
