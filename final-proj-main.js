@@ -434,7 +434,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 ambient: .2,
                 diffusivity: 1,
                 specularity: 1,
-                color: color(.5, .1, .9, 1)
+                color: color(.1, .1, .9, 1)
             }
             //Limb implementation
             this.spring_method = (p, t, x) => sym_euler(p, t, x);

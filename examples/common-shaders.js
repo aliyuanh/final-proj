@@ -306,7 +306,7 @@ const Water_Shader = defs.Water_Shader =
             float xScale = 1.;
             float yScale = 1.;
             float speed = .01;
-            vec3 dotColor = vec3(52./255.,18./255.,99./255.);
+            vec3 dotColor = vec3(133./255.,103./255.,28./255.);
             vec3 baseColor = vec3(1., 1.,1.);
             varying vec2 f_tex_coord;
               varying float disp;
