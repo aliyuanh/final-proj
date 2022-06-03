@@ -363,7 +363,8 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 'box': new defs.Cube(),
                 'ball': new defs.Subdivision_Sphere(4),
                 'axis': new defs.Axis_Arrows(),
-                'shell': new Shape_From_File("./assets/seashell.obj")
+                'shell': new Shape_From_File("./assets/seashell.obj"),
+                'octo': new Shape_From_File("./assets/octo.obj")
             };
 
             // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -562,7 +563,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
                 // !!! Camera changed here
                 // TODO: you can change the camera as needed.
-                Shader.assign_camera(Mat4.look_at(vec3(5, 8, 15), vec3(0, 5, 0), vec3(0, 1, 0)), this.uniforms);
+                Shader.assign_camera(Mat4.look_at(vec3(5, 10, 30), vec3(0, 10, -10), vec3(0, 1, 0)), this.uniforms);
             }
             this.uniforms.projection_transform = Mat4.perspective(Math.PI / 4, caller.width / caller.height, 1, 100);
 
@@ -576,7 +577,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.uniforms.lights = [defs.Phong_Shader.light_source(light_position, color(1, 1, 1, 1), 1000000)];
 
             // draw axis arrows.
-            this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+            // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
 
         }
     }
@@ -619,13 +620,15 @@ export class Final_Proj extends Final_Proj_base {
         const sand = color(211/255, 199/255, 162/255, 1);
         const ocean = color(0, 105/255, 148/255, .5);
         const shellColor = color(226/255, 223/255, 210/255, 1);
-        const seaweedColor = color(60/255, 130/255, 80/255, 1)
+        const seaweedColor = color(60/255, 130/255, 80/255, 1);
+        const octoColor = color(135/255, 81/255, 109/255, 1);
 
         const t = this.t = this.uniforms.animation_time / 1000;
 
         // !!! Draw ground
         let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(100, 0.01, 100));
         this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.plastic, color: sand});
+        
 
         //skybox
         let skybox_transform = Mat4.scale(50, 50, 50);
@@ -639,7 +642,7 @@ export class Final_Proj extends Final_Proj_base {
         for (let i = 0; i < this.limbs.length; i++) {
             for (let j = 0; j < this.limbs[i].particles.length; j++) {
                 let particleTransform = this.limbs[i].transf.times(this.limbs[i].particles[j].transf.times(Mat4.scale(.3, .3, .3)));
-                this.shapes.ball.draw(caller, this.uniforms, particleTransform, {...this.materials.metal, color: red});
+                this.shapes.ball.draw(caller, this.uniforms, particleTransform, {...this.materials.metal, color: octoColor});
             }
         }
         for (let i = 0; i < this.limbs.length; i++) {
@@ -656,8 +659,8 @@ export class Final_Proj extends Final_Proj_base {
                 const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
                 const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
 
-                this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: blue});
-                this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: blue});
+                this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: octoColor});
+                this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: octoColor});
 
             }
         }
@@ -698,8 +701,8 @@ export class Final_Proj extends Final_Proj_base {
         }
 
         //draw the...torso??
-        let torsoTransform = Mat4.translation(0, 12, 0).times(Mat4.scale(3, 3, 3));
-        this.shapes.ball.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color:red})
+        let torsoTransform = Mat4.translation(0, 15, 0).times(Mat4.scale(4.8, 4.2, 4.8));
+        this.shapes.octo.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: octoColor })
 
     }
 
