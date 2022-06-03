@@ -298,8 +298,8 @@ const Limb =
 
             //TODO: change to actual position of the limb
             //add position to the member variables and set particle position instead of topPos
-            const topPos = vec3(0, 13, 0);
-            this.particles[0].setPosition(topPos);
+            //const topPos = vec3(3, 0, 0);
+            //this.particles[0].setPosition(topPos);
 
             //calculate spring movement and apply forces
             for (let i = 0; i < this.links.length; i++) {
@@ -310,31 +310,35 @@ const Limb =
             const gravForce = vec3(0, this.gravity, 0);
             for (let i = 1; i < this.particles.length; i++) {
                 this.particles[i].apply_force(gravForce);
+                //make water slow the speed a  lil -- fake friction
+                this.particles[i].velocity = this.particles[i].velocity.times(0.99);
             }
 
             //check for collisions
-            for (let i = 1; i < this.particles.length; i++) {
-                if (this.particles[i].position[1] < 0) {
-                    //going thru the ground
-                    let len = 0.0;
-                    const dij_vec = vec3(0, -Math.abs(this.particles[i].position[1]), 0);
-                    const dij_mag = (dij_vec[0] ** 2 + dij_vec[1] ** 2 + dij_vec[2] ** 2) ** 0.5;
-                    const dij_hat = dij_vec.times(1 / dij_mag);
-                    const fs = dij_hat.times(dij_mag - len).times(this.ground_ks);
-                    const vij = vec3(0, 0, 0).minus(this.particles[i].velocity);
-                    const fd = dij_hat.times(this.ground_kd).times(vij.dot(dij_hat));
-                    const fe = fs.plus(fd.times(-1));
-                    const toApply = vec3(0, Math.abs(fe[1]), 0);
-                    this.particles[i].apply_force(toApply);
-                    //friction -- stop after a ton of collisions
-                    this.particles[i].velocity = this.particles[i].velocity.times(.99);
+            /*
+                        for (let i = 1; i < this.particles.length; i++) {
+                            if (this.particles[i].position[1] < 0) {
+                                //going thru the ground
+                                let len = 0.0;
+                                const dij_vec = vec3(0, -Math.abs(this.particles[i].position[1]), 0);
+                                const dij_mag = (dij_vec[0] ** 2 + dij_vec[1] ** 2 + dij_vec[2] ** 2) ** 0.5;
+                                const dij_hat = dij_vec.times(1 / dij_mag);
+                                const fs = dij_hat.times(dij_mag - len).times(this.ground_ks);
+                                const vij = vec3(0, 0, 0).minus(this.particles[i].velocity);
+                                const fd = dij_hat.times(this.ground_kd).times(vij.dot(dij_hat));
+                                const fe = fs.plus(fd.times(-1));
+                                const toApply = vec3(0, Math.abs(fe[1]), 0);
+                                this.particles[i].apply_force(toApply);
+                                //friction -- stop after a ton of collisions
+                                this.particles[i].velocity = this.particles[i].velocity.times(.99);
 
-                }
-            }
+                            }
+                        }*/
 
             for (let i = 1; i < this.particles.length; i++) {
                 this.spring_method(this.particles[i], this.dt, this.old_particles[i]);
             }
+
 
         }
 
@@ -393,8 +397,11 @@ export const Final_Proj_base = defs.Final_Proj_base =
             //Limb implementation
             this.spring_method = (p, t, x) => sym_euler(p, t, x);
             let ks = 8.9;
-            let kd = 5.9;
+            let kd = 20.9;
             let len = .5;
+
+            const seaweed_kd = 5.9;
+            const seaweed_ks = 8.9;
 
             //assume meters
             this.gravity = -6.8;
@@ -404,6 +411,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.limbs = []
             this.seaweed = [];
             this.isRunning = true;
+            this.octopusSpeed = 0.15;
             const LimbTransform = Mat4.translation(0, -2, 3);
 
             this.limbs.push(new Limb(this.spring_method, LimbTransform, this.gravity));
@@ -494,6 +502,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.limbs[6].add_link(1, 2, ks, kd, len);
             this.limbs[6].add_link(2, 3, ks, kd, len);
 
+
             const LimbTransform8 = Mat4.translation(-1.5, -2, -1.5);
 
             this.limbs.push(new Limb(this.spring_method, LimbTransform8, this.gravity));
@@ -507,12 +516,17 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.limbs[7].add_link(1, 2, ks, kd, len);
             this.limbs[7].add_link(2, 3, ks, kd, len);
 
+            //octopus motion setup
+            //this.octopusPosition = Mat4.identity();
+            this.octopusPosition = Mat4.translation(0, 12, 0);
+            this.octopusDirection = Mat4.identity();
+
             const SeaweedTransform = [
-              Mat4.translation(0, -13, 0),
-              Mat4.translation(0, -13, 0),
-              Mat4.translation(0, -13, 0),
-              Mat4.translation(0, -13, 0),
-              Mat4.translation(0, -13, 0)
+                Mat4.translation(0, 0, 0),
+                Mat4.translation(0, 0, 0),
+                Mat4.translation(0, 0, 0),
+                Mat4.translation(0, 0, 0),
+                Mat4.translation(0, 0, 0)
             ];
 
             for (let i = 0; i < 5; i++) {
@@ -520,25 +534,25 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 this.seaweed.push(new Limb(this.spring_method, SeaweedTransform[i], this.gravity * -0.4))
                 this.seaweed[i].add_particle(1.5, vec3(0, 0, 0))
                 this.seaweed[i].add_particle(
-                  0.5,
-                  vec3(Math.random() * 8 - 4, n, Math.random() * 8 - 4)
+                    0.5,
+                    vec3(Math.random() * 8 - 4, n, Math.random() * 8 - 4)
                 );
                 this.seaweed[i].add_particle(
-                  0.5,
-                  vec3(Math.random() * 8 - 4, n + 1, Math.random() * 8 - 4)
+                    0.5,
+                    vec3(Math.random() * 8 - 4, n + 1, Math.random() * 8 - 4)
                 );
                 this.seaweed[i].add_particle(
-                  0.5,
-                  vec3(Math.random() * 8 - 4, n + 2, Math.random() * 8 - 4)
+                    0.5,
+                    vec3(Math.random() * 8 - 4, n + 2, Math.random() * 8 - 4)
                 );
                 this.seaweed[i].add_particle(
-                  0.5,
-                  vec3(Math.random() * 8 - 4, n + 3, Math.random() * 8 - 4)
+                    0.5,
+                    vec3(Math.random() * 8 - 4, n + 3, Math.random() * 8 - 4)
                 );
-                this.seaweed[i].add_link(0, 1, ks, kd, len/2)
-                this.seaweed[i].add_link(1, 2, ks, kd, len/2)
-                this.seaweed[i].add_link(2, 3, ks, kd, len/2)
-                this.seaweed[i].add_link(3, 4, ks, kd, len/2)
+                this.seaweed[i].add_link(0, 1, seaweed_ks, seaweed_kd, len / 2)
+                this.seaweed[i].add_link(1, 2, seaweed_ks, seaweed_kd, len / 2)
+                this.seaweed[i].add_link(2, 3, seaweed_ks, seaweed_kd, len / 2)
+                this.seaweed[i].add_link(3, 4, seaweed_ks, seaweed_kd, len / 2)
             }
 
         }
@@ -616,10 +630,10 @@ export class Final_Proj extends Final_Proj_base {
             // function times(), which generates products of matrices.
 
         const blue = color(0, 0, 1, 1), yellow = color(1, 0.7, 0, 1), red = color(1, 0, 0, 1);
-        const sand = color(211/255, 199/255, 162/255, 1);
-        const ocean = color(0, 105/255, 148/255, .5);
-        const shellColor = color(226/255, 223/255, 210/255, 1);
-        const seaweedColor = color(60/255, 130/255, 80/255, 1)
+        const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
+        const ocean = color(0, 105 / 255, 148 / 255, .5);
+        const shellColor = color(226 / 255, 223 / 255, 210 / 255, 1);
+        const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1)
 
         const t = this.t = this.uniforms.animation_time / 1000;
 
@@ -629,22 +643,22 @@ export class Final_Proj extends Final_Proj_base {
 
         //skybox
         let skybox_transform = Mat4.scale(50, 50, 50);
-        this.shapes.ball.draw(caller, this.uniforms, skybox_transform,  {...this.materials.plastic, color: ocean});
+        this.shapes.ball.draw(caller, this.uniforms, skybox_transform, {...this.materials.plastic, color: ocean});
 
 
         //random shell
-        let shellTransform = Mat4.translation(-5, 1, -15).times(Mat4.rotation(-Math.PI/2, 0, 0, 1)).times(Mat4.rotation(-Math.PI/2, 1, 0, 0));
+        let shellTransform = Mat4.translation(-5, 1, -15).times(Mat4.rotation(-Math.PI / 2, 0, 0, 1)).times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
         this.shapes.shell.draw(caller, this.uniforms, shellTransform, {...this.materials.metal, color: shellColor});
 
         for (let i = 0; i < this.limbs.length; i++) {
             for (let j = 0; j < this.limbs[i].particles.length; j++) {
                 let particleTransform = this.limbs[i].transf.times(this.limbs[i].particles[j].transf.times(Mat4.scale(.3, .3, .3)));
+                //console.log(particleTransform);
                 this.shapes.ball.draw(caller, this.uniforms, particleTransform, {...this.materials.metal, color: red});
             }
         }
         for (let i = 0; i < this.limbs.length; i++) {
             for (let j = 0; j < this.limbs[i].links.length; j++) {
-                //draw balls between the links to act as spring visual indicators (.2 radius?)
                 const index = this.limbs[i].links[j].I;
                 const index2 = this.limbs[i].links[j].J;
                 const origPt = this.limbs[i].particles[index].position;
@@ -653,18 +667,29 @@ export class Final_Proj extends Final_Proj_base {
                 //draw 2 balls
                 const newPos = origPt.plus(diff.times(0.33));
                 const newPos2 = origPt.plus(diff.times(0.66));
-                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
-                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
+                let transf = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2]).times(Mat4.scale(.05, .4, .05)));
+                let transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2]).times(Mat4.scale(.05, .4, .05)));
 
                 this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: blue});
                 this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: blue});
 
             }
         }
+        this.octopusPosition = this.octopusPosition.times(this.octopusDirection);
+        //apply octopus movement to all the limbs too
+        for (let i = 0; i < this.limbs.length; i++) {
+            let newPos = this.limbs[i].particles[0].position.plus(vec3(this.octopusDirection[0][3], this.octopusDirection[1][3], this.octopusDirection[2][3]));
+            this.limbs[i].particles[0].setPosition(newPos);
+            //console.log(this.limbs[i].particles[0].position);
+        }
+
         //update with forces and stuff for next frame
         for (let i = 0; i < this.limbs.length; i++) {
             this.limbs[i].update();
         }
+        //TODO: get rid of this, is octopus movement
+        //this.octopusPosition = Mat4.translation(0.010, 0, 0).times(this.octopusPosition);
+        //console.log(this.octopusPosition);
 
         for (let i = 0; i < this.seaweed.length; i++) {
             for (let j = 0; j < this.seaweed[i].links.length; j++) {
@@ -675,31 +700,32 @@ export class Final_Proj extends Final_Proj_base {
                 const diff = finalPt.minus(origPt);
                 const newPos = origPt.plus(diff.times(0.33));
                 const newPos2 = origPt.plus(diff.times(0.66));
-                const transf = this.limbs[i].transf.times(Mat4.translation(newPos[0] - 10, newPos[1] - 10, newPos[2] ).times(Mat4.scale(.2, .5, .2)));
-                const transf2 = this.limbs[i].transf.times(Mat4.translation(newPos2[0] - 10, newPos2[1] - 10, newPos2[2] ).times(Mat4.scale(.2, .5, .2)));
+                const transf = Mat4.identity().times(Mat4.translation(newPos[0] - 10, newPos[1], newPos[2]).times(Mat4.scale(.2, .5, .2)));
+                const transf2 = Mat4.identity().times(Mat4.translation(newPos2[0] - 10, newPos2[1], newPos2[2]).times(Mat4.scale(.2, .5, .2)));
 
                 this.shapes.box.draw(caller, this.uniforms, transf, {...this.materials.metal, color: seaweedColor});
-                this.shapes.box.draw(caller, this.uniforms, transf2, { ...this.materials.metal, color: seaweedColor });
-                
-                const transf3 = this.limbs[i].transf.times(Mat4.translation(newPos[0] + 8, newPos[1] - 10, newPos[2] + 5 ).times(Mat4.scale(.2, .5, .2)));
-                const transf4 = this.limbs[i].transf.times(Mat4.translation(newPos2[0] + 8, newPos2[1] - 10, newPos2[2] + 5 ).times(Mat4.scale(.2, .5, .2)));
+                this.shapes.box.draw(caller, this.uniforms, transf2, {...this.materials.metal, color: seaweedColor});
+
+                const transf3 = this.limbs[i].transf.times(Mat4.translation(newPos[0] + 8, newPos[1], newPos[2] + 5).times(Mat4.scale(.2, .5, .2)));
+                const transf4 = this.limbs[i].transf.times(Mat4.translation(newPos2[0] + 8, newPos2[1], newPos2[2] + 5).times(Mat4.scale(.2, .5, .2)));
 
                 this.shapes.box.draw(caller, this.uniforms, transf3, {...this.materials.metal, color: seaweedColor});
-                this.shapes.box.draw(caller, this.uniforms, transf4, { ...this.materials.metal, color: seaweedColor });
+                this.shapes.box.draw(caller, this.uniforms, transf4, {...this.materials.metal, color: seaweedColor});
 
-                const transf5 = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1] - 10, newPos[2] - 17 ).times(Mat4.scale(.2, .5, .2)));
-                const transf6 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1] - 10, newPos2[2] - 17 ).times(Mat4.scale(.2, .5, .2)));
+                const transf5 = this.limbs[i].transf.times(Mat4.translation(newPos[0], newPos[1], newPos[2] - 17).times(Mat4.scale(.2, .5, .2)));
+                const transf6 = this.limbs[i].transf.times(Mat4.translation(newPos2[0], newPos2[1], newPos2[2] - 17).times(Mat4.scale(.2, .5, .2)));
 
                 this.shapes.box.draw(caller, this.uniforms, transf5, {...this.materials.metal, color: seaweedColor});
-                this.shapes.box.draw(caller, this.uniforms, transf6, { ...this.materials.metal, color: seaweedColor });
+                this.shapes.box.draw(caller, this.uniforms, transf6, {...this.materials.metal, color: seaweedColor});
             }
 
             this.seaweed[i].update();
         }
 
         //draw the...torso??
-        let torsoTransform = Mat4.translation(0, 12, 0).times(Mat4.scale(3, 3, 3));
-        this.shapes.ball.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color:red})
+        let torsoTransform = this.octopusPosition.times(Mat4.scale(3.2, 3.2, 3.2));
+        //let torsoTransform = Mat4.translation(0, 12, 0).times(Mat4.scale(3, 3, 3));
+        this.shapes.ball.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: red})
 
     }
 
@@ -709,6 +735,34 @@ export class Final_Proj extends Final_Proj_base {
         this.control_panel.innerHTML += "Final Project: Octopus Motion";
         this.new_line();
         this.key_triggered_button("Debug", ["Shift", "D"], null);
+        this.new_line();
+        this.key_triggered_button("Move octopus left", ["j"], () => {
+                this.octopusDirection = Mat4.translation(-1 * this.octopusSpeed, 0, 0);
+            }, undefined,
+            () => {
+                this.octopusDirection = Mat4.identity();
+            });
+        this.new_line();
+        this.key_triggered_button("Move octopus forward", ["i"], () => {
+                this.octopusDirection = Mat4.translation(0.0, 0, -1 * this.octopusSpeed);
+            }, undefined,
+            () => {
+                this.octopusDirection = Mat4.identity();
+            });
+        this.new_line();
+        this.key_triggered_button("Move octopus right", ["l"], () => {
+                this.octopusDirection = Mat4.translation(this.octopusSpeed, 0, 0);
+            }, undefined,
+            () => {
+                this.octopusDirection = Mat4.identity();
+            });
+        this.new_line();
+        this.key_triggered_button("Move octopus backward", ["k"], () => {
+                this.octopusDirection = Mat4.translation(0, 0, this.octopusSpeed);
+            }, undefined,
+            () => {
+                this.octopusDirection = Mat4.identity();
+            });
         this.new_line();
     }
 }
