@@ -243,18 +243,30 @@ const Link =
         }
     };
 
+const Rock =
+    class Rock {
+        constructor(position, dimensions) {
+            this.mass = 100;
+            this.ks = 100;
+            this.kd = 50;
+            this.position = position;
+            this.dimensions = dimensions;
+        }
+    };
+
 const Limb =
     class Limb {
-        constructor(spring_method, transf, gravity) {
+        constructor(spring_method, transf, gravity, rocks) {
             this.transf = transf;
             this.particles = [];
             this.old_particles = [];
             this.links = [];
             this.spring_method = spring_method;
+            this.rocks = rocks;
 
             //TODO make these varaibles configurable
             this.gravity = gravity;
-            this.ground_ks = 350.0;
+            this.ground_ks = 3500.0;
             this.ground_kd = 10.0;
             this.dt = 0.03;
         }
@@ -311,36 +323,57 @@ const Limb =
             for (let i = 1; i < this.particles.length; i++) {
                 this.particles[i].apply_force(gravForce);
                 //make water slow the speed a  lil -- fake friction
-                if(slows){
+                if (slows) {
                     this.particles[i].velocity = this.particles[i].velocity.times(0.99);
                 }
             }
 
-            //check for collisions
-            /*
-                        for (let i = 1; i < this.particles.length; i++) {
-                            if (this.particles[i].position[1] < 0) {
-                                //going thru the ground
-                                let len = 0.0;
-                                const dij_vec = vec3(0, -Math.abs(this.particles[i].position[1]), 0);
-                                const dij_mag = (dij_vec[0] ** 2 + dij_vec[1] ** 2 + dij_vec[2] ** 2) ** 0.5;
-                                const dij_hat = dij_vec.times(1 / dij_mag);
-                                const fs = dij_hat.times(dij_mag - len).times(this.ground_ks);
-                                const vij = vec3(0, 0, 0).minus(this.particles[i].velocity);
-                                const fd = dij_hat.times(this.ground_kd).times(vij.dot(dij_hat));
-                                const fe = fs.plus(fd.times(-1));
-                                const toApply = vec3(0, Math.abs(fe[1]), 0);
-                                this.particles[i].apply_force(toApply);
-                                //friction -- stop after a ton of collisions
-                                this.particles[i].velocity = this.particles[i].velocity.times(.99);
-
-                            }
-                        }*/
+            for(let i = 0; i < this.particles.length; i++){
+                if(this.particles[i].position[1] < 0 && slows){
+                    //console.log("i hit the ground owie");
+                    let len = 0.0;
+                    const dij_vec = vec3(0, -Math.abs(this.particles[i].position[1]), 0);
+                    const dij_mag = (dij_vec[0] ** 2 + dij_vec[1] ** 2 + dij_vec[2] ** 2) ** 0.5;
+                    const dij_hat = dij_vec.times(1 / dij_mag);
+                    const fs = dij_hat.times(dij_mag - len).times(this.ground_ks);
+                    const vij = vec3(0, 0, 0).minus(this.particles[i].velocity);
+                    const fd = dij_hat.times(this.ground_kd).times(vij.dot(dij_hat));
+                    const fe = fs.plus(fd.times(-1));
+                    const toApply = vec3(0, Math.abs(fe[1]), 0);
+                    //console.log(toApply);
+                    this.particles[i].apply_force(toApply);
+                    //friction -- stop after a ton of collisions
+                    this.particles[i].velocity = this.particles[i].velocity.times(.99);
+                }
+            }
+            for(let i = 0; i < this.rocks.length; i++){
+                this.handle_collisions(this.rocks[i]);
+            }
 
             for (let i = 1; i < this.particles.length; i++) {
                 this.spring_method(this.particles[i], this.dt, this.old_particles[i]);
             }
 
+
+        }
+
+        handle_collisions(rock) {
+            for (let i = 0; i < this.particles.length; i++) {
+                let pos = this.particles[i].position;
+                let particlePos = this.transf.times(Mat4.translation(pos[0], pos[1], pos[2]));
+                particlePos = vec3(particlePos[0][3], particlePos[1][3], particlePos[2][3]);
+                if (particlePos[0] < rock.position[0] + rock.dimensions[0] && particlePos[0] > rock.position[0] - rock.dimensions[0] ) {
+                    if (particlePos[1] < rock.position[1] + rock.dimensions[1]  && particlePos[1] > rock.position[1] - rock.dimensions[1] ) {
+                        if (particlePos[2] < rock.position[2] + rock.dimensions[2] && particlePos[2] > rock.position[2] - rock.dimensions[2]) {
+                            //we have collided! now determine which direction to hit the particle in...
+                            //console.log("collision!!");
+                            let diff = particlePos.minus(rock.position);
+                            diff = diff.times(25);
+                            this.particles[i].apply_force(diff);
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -415,9 +448,15 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.seaweed = [];
             this.isRunning = true;
             this.octopusSpeed = 0.15;
+
+            //Rocks -- must be made FIRST
+            this.rocks = [];
+            this.rocks.push(new Rock(vec3(5, 0, -15), vec3(5, 5, 5)));
+            this.rocks.push(new Rock(vec3(-16,2,0), vec3(2,4,5)))
+
             const LimbTransform = Mat4.translation(0, -2, 3);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
             this.limbs[0].add_particle(1, vec3(0, 12, 0));
             this.limbs[0].add_particle(1, vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4));
@@ -429,7 +468,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform2 = Mat4.translation(3, -2, 0);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform2, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform2, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[1].add_particle(0, vec3(0, 12, 0));
@@ -442,7 +481,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform3 = Mat4.translation(-3, -2, 0);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform3, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform3, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[2].add_particle(1, vec3(0, 12, 0));
@@ -455,7 +494,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform4 = Mat4.translation(0, -2, -3);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform4, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform4, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[3].add_particle(1, vec3(0, 12, 0));
@@ -469,7 +508,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform5 = Mat4.translation(1.5, -2, 1.5);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform5, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform5, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
             this.limbs[4].add_particle(1, vec3(0, 12, 0));
             this.limbs[4].add_particle(1, vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4));
@@ -481,7 +520,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform6 = Mat4.translation(1.5, -2, -1.5);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform6, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform6, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[5].add_particle(0, vec3(0, 12, 0));
@@ -494,7 +533,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform7 = Mat4.translation(-1.5, -2, 1.5);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform7, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform7, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[6].add_particle(1, vec3(0, 12, 0));
@@ -508,7 +547,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             const LimbTransform8 = Mat4.translation(-1.5, -2, -1.5);
 
-            this.limbs.push(new Limb(this.spring_method, LimbTransform8, this.gravity));
+            this.limbs.push(new Limb(this.spring_method, LimbTransform8, this.gravity, this.rocks));
             //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity);
 
             this.limbs[7].add_particle(1, vec3(0, 12, 0));
@@ -534,7 +573,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
 
             for (let i = 0; i < 5; i++) {
                 let n = 13
-                this.seaweed.push(new Limb(this.spring_method, SeaweedTransform[i], this.gravity * -0.4))
+                this.seaweed.push(new Limb(this.spring_method, SeaweedTransform[i], this.gravity * -0.4, []))
                 this.seaweed[i].add_particle(1.5, vec3(0, 0, 0))
                 this.seaweed[i].add_particle(
                     0.5,
@@ -557,6 +596,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 this.seaweed[i].add_link(2, 3, seaweed_ks, seaweed_kd, len / 2)
                 this.seaweed[i].add_link(3, 4, seaweed_ks, seaweed_kd, len / 2)
             }
+
 
         }
 
@@ -593,13 +633,15 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.uniforms.lights = [defs.Phong_Shader.light_source(light_position, color(1, 1, 1, 1), 1000000)];
 
             // draw axis arrows.
-            // this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+            //this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
 
         }
     }
 
 
 export class Final_Proj extends Final_Proj_base {
+
+
     // **Assignment2** is a Scene object that can be added to any display canvas.
     // This particular scene is broken up into two pieces for easier understanding.
     // See the other piece, My_Demo_Base, if you need to see the setup code.
@@ -633,11 +675,11 @@ export class Final_Proj extends Final_Proj_base {
             // function times(), which generates products of matrices.
 
         const blue = color(0, 0, 1, 1), yellow = color(1, 0.7, 0, 1), red = color(1, 0, 0, 1);
-        const sand = color(211/255, 199/255, 162/255, 1);
-        const ocean = color(0, 105/255, 148/255, .5);
-        const shellColor = color(226/255, 223/255, 210/255, 1);
-        const seaweedColor = color(60/255, 130/255, 80/255, 1);
-        const octoColor = color(135/255, 81/255, 109/255, 0.5);
+        const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
+        const ocean = color(0, 105 / 255, 148 / 255, .5);
+        const shellColor = color(226 / 255, 223 / 255, 210 / 255, 0.5);
+        const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
+        const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
         const white = color(1, 1, 1, 1);
         const black = color(0, 0, 0, 1);
 
@@ -646,12 +688,18 @@ export class Final_Proj extends Final_Proj_base {
         // !!! Draw ground
         let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(100, 0.01, 100));
         this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.plastic, color: sand});
-        
+
 
         //skybox
         let skybox_transform = Mat4.scale(50, 50, 50);
         this.shapes.ball.draw(caller, this.uniforms, skybox_transform, {...this.materials.plastic, color: ocean});
 
+        //rocks
+        for (let i = 0; i < this.rocks.length; i++) {
+            let rock_transform = Mat4.translation(this.rocks[i].position[0], this.rocks[i].position[1], this.rocks[i].position[2]);
+            rock_transform = rock_transform.times(Mat4.scale(this.rocks[i].dimensions[0], this.rocks[i].dimensions[1], this.rocks[i].dimensions[2]));
+            this.shapes.box.draw(caller, this.uniforms, rock_transform, {...this.materials.metal, color: shellColor});
+        }
 
         //random shell
         let shellTransform = Mat4.translation(-5, 1, -15).times(Mat4.rotation(-Math.PI / 2, 0, 0, 1)).times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
@@ -660,7 +708,10 @@ export class Final_Proj extends Final_Proj_base {
         for (let i = 0; i < this.limbs.length; i++) {
             for (let j = 0; j < this.limbs[i].particles.length; j++) {
                 let particleTransform = this.limbs[i].transf.times(this.limbs[i].particles[j].transf.times(Mat4.scale(.3, .3, .3)));
-                this.shapes.ball.draw(caller, this.uniforms, particleTransform, {...this.materials.metal, color: octoColor});
+                this.shapes.ball.draw(caller, this.uniforms, particleTransform, {
+                    ...this.materials.metal,
+                    color: octoColor
+                });
             }
         }
         for (let i = 0; i < this.limbs.length; i++) {
@@ -686,9 +737,7 @@ export class Final_Proj extends Final_Proj_base {
         for (let i = 0; i < this.limbs.length; i++) {
             let newPos = this.limbs[i].particles[0].position.plus(vec3(this.octopusDirection[0][3], this.octopusDirection[1][3], this.octopusDirection[2][3]));
             this.limbs[i].particles[0].setPosition(newPos);
-            //console.log(this.limbs[i].particles[0].position);
         }
-
         //update with forces and stuff for next frame
         for (let i = 0; i < this.limbs.length; i++) {
             this.limbs[i].update(true);
@@ -730,19 +779,20 @@ export class Final_Proj extends Final_Proj_base {
 
         //draw the...torso??
         let torsoTransform = this.octopusPosition.times(Mat4.scale(4.8, 4.2, 4.8));
-        this.shapes.octo.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: octoColor });
+        this.shapes.octo.draw(caller, this.uniforms, torsoTransform, {...this.materials.plastic, color: octoColor});
 
         // draw eyeballs
         let rightEyeTransform = this.octopusPosition.times(Mat4.translation(1.4, -1, 4).times(Mat4.scale(1, 1, 1)));
-        this.shapes.ball.draw(caller, this.uniforms, rightEyeTransform, {...this.materials.plastic, color: white });
+        this.shapes.ball.draw(caller, this.uniforms, rightEyeTransform, {...this.materials.plastic, color: white});
         let rightIrisTransform = this.octopusPosition.times(Mat4.translation(1.4, -1.1, 4.5).times(Mat4.scale(0.7, 0.7, 0.7)));
-        this.shapes.ball.draw(caller, this.uniforms, rightIrisTransform, {...this.materials.plastic, color: black });
+        this.shapes.ball.draw(caller, this.uniforms, rightIrisTransform, {...this.materials.plastic, color: black});
         let leftEyeTransform = this.octopusPosition.times(Mat4.translation(-1.4, -1, 4).times(Mat4.scale(1, 1, 1)));
-        this.shapes.ball.draw(caller, this.uniforms, leftEyeTransform, {...this.materials.plastic, color: white });
+        this.shapes.ball.draw(caller, this.uniforms, leftEyeTransform, {...this.materials.plastic, color: white});
         let leftIrisTransform = this.octopusPosition.times(Mat4.translation(-1.4, -1.1, 4.5).times(Mat4.scale(0.7, 0.7, 0.7)));
-        this.shapes.ball.draw(caller, this.uniforms, leftIrisTransform, {...this.materials.plastic, color: black });
+        this.shapes.ball.draw(caller, this.uniforms, leftIrisTransform, {...this.materials.plastic, color: black});
 
     }
+
 
     render_controls() {
         // render_controls(): Sets up a panel of interactive HTML elements, including
