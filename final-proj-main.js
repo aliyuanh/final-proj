@@ -4,7 +4,6 @@ import {tiny, defs} from './examples/common.js';
 const {vec3, vec4, color, Mat4, Shape, Material, Shader, Texture, Component} = tiny;
 import {Shape_From_File} from './examples/obj-file-demo.js'
 
-// TODO: you should implement the required classes here or in another file.
 
 const Spline =
     class Spline {
@@ -413,6 +412,7 @@ export const Final_Proj_base = defs.Final_Proj_base =
             const basic = new defs.Basic_Shader();
             const phong = new defs.Phong_Shader();
             const tex_phong = new defs.Textured_Phong();
+            const my_water_shader = new defs.Water_Shader();
             this.materials = {};
             this.materials.plastic = {
                 shader: phong,
@@ -429,7 +429,13 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 color: color(.9, .5, .9, 1)
             }
             this.materials.rgb = {shader: tex_phong, ambient: .5, texture: new Texture("assets/rgb.jpg")}
-
+            this.materials.water = {
+                shader: my_water_shader,
+                ambient: .2,
+                diffusivity: 1,
+                specularity: 1,
+                color: color(.5, .1, .9, 1)
+            }
             //Limb implementation
             this.spring_method = (p, t, x) => sym_euler(p, t, x);
             let ks = 8.9;
@@ -687,7 +693,7 @@ export class Final_Proj extends Final_Proj_base {
 
         // !!! Draw ground
         let floor_transform = Mat4.translation(0, 0, 0).times(Mat4.scale(100, 0.01, 100));
-        this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.plastic, color: sand});
+        this.shapes.box.draw(caller, this.uniforms, floor_transform, {...this.materials.water});
 
 
         //skybox
