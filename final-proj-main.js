@@ -460,236 +460,56 @@ export const Final_Proj_base = defs.Final_Proj_base =
             this.rocks.push(new Rock(vec3(5, 0, -15), vec3(5, 5, 5)));
             this.rocks.push(new Rock(vec3(-16,2,0), vec3(2,4,5)))
 
-            const LimbTransform = Mat4.translation(0, -2, 3);
+            const LimbTransformArray = [
+              Mat4.translation(0, -2, 3),
+              Mat4.translation(3, -2, 0),
+              Mat4.translation(-3, -2, 0),
+              Mat4.translation(0, -2, -3),
+              Mat4.translation(1.5, -2, 1.5),
+              Mat4.translation(1.5, -2, -1.5),
+              Mat4.translation(-1.5, -2, 1.5),
+              Mat4.translation(-1.5, -2, -1.5),
+            ];
 
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-            this.limbs[0].add_particle(1, vec3(0, 12, 0));
-            this.limbs[0].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[0].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[0].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[0].add_link(0, 1, ks, kd, len);
-            this.limbs[0].add_link(1, 2, ks, kd, len);
-            this.limbs[0].add_link(2, 3, ks, kd, len);
+            for (let i = 0; i < LimbTransformArray.length; i++) {
+                this.limbs.push(
+                    new Limb(
+                    this.spring_method,
+                    LimbTransformArray[i],
+                    this.gravity * 0.5,
+                    this.rocks
+                    )
+                );
 
-            const LimbTransform2 = Mat4.translation(3, -2, 0);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform2,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[1].add_particle(0, vec3(0, 12, 0));
-            this.limbs[1].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[1].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[1].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[1].add_link(0, 1, ks, kd, len);
-            this.limbs[1].add_link(1, 2, ks, kd, len);
-            this.limbs[1].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform3 = Mat4.translation(-3, -2, 0);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform3,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[2].add_particle(1, vec3(0, 12, 0));
-            this.limbs[2].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[2].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[2].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[2].add_link(0, 1, ks, kd, len);
-            this.limbs[2].add_link(1, 2, ks, kd, len);
-            this.limbs[2].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform4 = Mat4.translation(0, -2, -3);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform4,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[3].add_particle(1, vec3(0, 12, 0));
-            this.limbs[3].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[3].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[3].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[3].add_link(0, 1, ks, kd, len);
-            this.limbs[3].add_link(1, 2, ks, kd, len);
-            this.limbs[3].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform5 = Mat4.translation(1.5, -2, 1.5);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform5,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-            this.limbs[4].add_particle(1, vec3(0, 12, 0));
-            this.limbs[4].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[4].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[4].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[4].add_link(0, 1, ks, kd, len);
-            this.limbs[4].add_link(1, 2, ks, kd, len);
-            this.limbs[4].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform6 = Mat4.translation(1.5, -2, -1.5);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform6,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[5].add_particle(0, vec3(0, 12, 0));
-            this.limbs[5].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[5].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[5].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[5].add_link(0, 1, ks, kd, len);
-            this.limbs[5].add_link(1, 2, ks, kd, len);
-            this.limbs[5].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform7 = Mat4.translation(-1.5, -2, 1.5);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform7,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[6].add_particle(1, vec3(0, 12, 0));
-            this.limbs[6].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[6].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[6].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[6].add_link(0, 1, ks, kd, len);
-            this.limbs[6].add_link(1, 2, ks, kd, len);
-            this.limbs[6].add_link(2, 3, ks, kd, len);
-
-            const LimbTransform8 = Mat4.translation(-1.5, -2, -1.5);
-
-            this.limbs.push(
-              new Limb(
-                this.spring_method,
-                LimbTransform8,
-                this.gravity * 0.5,
-                this.rocks
-              )
-            );
-            //this.limb1 = new Limb(this.spring_method, LimbTransform, this.gravity * 0.5);
-
-            this.limbs[7].add_particle(1, vec3(0, 12, 0));
-            this.limbs[7].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 11, Math.random() * 8 - 4)
-            );
-            this.limbs[7].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 10, Math.random() * 8 - 4)
-            );
-            this.limbs[7].add_particle(
-              1,
-              vec3(Math.random() * 8 - 4, 9, Math.random() * 8 - 4)
-            );
-            this.limbs[7].add_link(0, 1, ks, kd, len);
-            this.limbs[7].add_link(1, 2, ks, kd, len);
-            this.limbs[7].add_link(2, 3, ks, kd, len);
-
+                this.limbs[i].add_particle(1, vec3(0, 12, 0));
+                this.limbs[i].add_particle(
+                    1,
+                    vec3(
+                    Math.random() * 8 - 4,
+                    11,
+                    Math.random() * 8 - 4
+                    )
+                );
+                this.limbs[i].add_particle(
+                    1,
+                    vec3(
+                    Math.random() * 8 - 4,
+                    10,
+                    Math.random() * 8 - 4
+                    )
+                );
+                this.limbs[i].add_particle(
+                    1,
+                    vec3(
+                    Math.random() * 8 - 4,
+                    9,
+                    Math.random() * 8 - 4
+                    )
+                );
+                this.limbs[i].add_link(0, 1, ks * 2, kd * 0.5, len);
+                this.limbs[i].add_link(1, 2, ks, kd, len * 1.5);
+                this.limbs[i].add_link(2, 3, ks * 0.5, kd, len * 2.5);
+            }
             //octopus motion setup
             //this.octopusPosition = Mat4.identity();
             this.octopusPosition = Mat4.translation(0, 14, 0);
