@@ -549,7 +549,21 @@ export const Final_Proj_base = defs.Final_Proj_base =
                 this.seaweed[i].add_link(3, 4, seaweed_ks, seaweed_kd, len / 2)
             }
 
+            
+        this.spline = new Hermite_Spline();
+        this.sample_count = 1000;
+        const tangentScale = 10;
+        //Note: must be done to avoid WebGL complaints
+        this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
+        this.spline.add_point(10 + 2, 3, 20 - 3, 50, 0, 0);
+        this.spline.add_point(20 + 2, 3, 10 - 3, 0, 0, -50);
+        this.spline.add_point(10 + 2, 3, 0 - 3, -50, 0, 0)
+        this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
 
+        //const curve_func = (t) => vec3(0,0,0);
+        const curve_func = (t) => this.spline.get_position(t);
+        this.curve = new Curved_Shape(curve_func, this.sample_count, color(1,0,0,1));
+        console.log(this.curve)
         }
 
         render_animation(caller) {                                                // display():  Called once per frame of animation.  We'll isolate out
@@ -841,6 +855,17 @@ export class Final_Proj extends Final_Proj_base {
         this.shapes.box.draw(caller, this.uniforms, branch7_model, this.materials.plastic);
         this.shapes.box.draw(caller, this.uniforms, branch8_model, this.materials.plastic);
         this.shapes.box.draw(caller, this.uniforms, branch9_model, this.materials.plastic);
+
+
+        const spline_transform = Mat4.identity()
+        this.curve.draw(caller, this.uniforms, spline_transform);
+        
+        var currT = ((this.t + 5) % 5) / 5;
+        const topPos = this.spline.get_position(currT);
+
+        this.shapes.ball.draw(caller, this.uniforms, 
+            Mat4.translation(...topPos),
+            { ...this.materials.plastic, color: ocean })
 
     }
 
