@@ -432,7 +432,7 @@ const Limb = class Limb {
             //we have collided! now determine which direction to hit the particle in...
             //console.log("collision!!");
             let diff = particlePos.minus(rock.position);
-            diff = diff.times(25);
+            diff = diff.times(10);
             this.particles[i].apply_force(diff);
           }
         }
@@ -559,8 +559,9 @@ export const Final_Proj_base =
 
       //Rocks -- must be made FIRST
       this.rocks = [];
-      this.rocks.push(new Rock(vec3(15, 0, -15), vec3(4, 4, 4)));
-      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2, 3, 4)));
+      this.rocks.push(new Rock(vec3(15, 0, -15), vec3(4.2, 4.5, 4.2)));
+      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2.8, 4, 4)));
+      this.rocks.push(new Rock(vec3(0, -8, -30), vec3(50, 8, 50)));
 
       const LimbTransformArray = [
         Mat4.translation(0, -2, 3),
@@ -816,7 +817,7 @@ export class Final_Proj extends Final_Proj_base {
           this.rocks[i].dimensions[2]
         )
       );
-      //this.shapes.box.draw(caller, this.uniforms, rock_transform, this.materials.cave_texture);
+      // this.shapes.box.draw(caller, this.uniforms, rock_transform, this.materials.cave_texture);
     }
 
     //random shells
