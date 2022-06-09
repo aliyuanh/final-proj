@@ -507,7 +507,7 @@ export const Final_Proj_base =
 
       this.materials.cave_texture = {
         shader: tex_phong,
-        color: color(0.5, 0.5, 0.5, 1),
+        color: color(90/255, 90/255, 90/255, 1),
         ambient: 0.3, 
         diffusivity: 1, 
         specularity: .4,
@@ -787,10 +787,7 @@ export class Final_Proj extends Final_Proj_base {
           this.rocks[i].dimensions[2]
         )
       );
-      this.shapes.box.draw(caller, this.uniforms, rock_transform, {
-        ...this.materials.cave_texture,
-        color: lightShellColor,
-      });
+      //this.shapes.box.draw(caller, this.uniforms, rock_transform, this.materials.cave_texture);
     }
 
     //random shells
@@ -1066,8 +1063,12 @@ export class Final_Proj extends Final_Proj_base {
     });
 
     //draw cave
-    let model_transform_cave = Mat4.scale(5, 5, 5);
-    this.shapes.ball.draw(caller, this.uniforms, model_transform_cave, this.materials.cave_texture);
+
+    let model_transform_cave1 = Mat4.translation(15, 2, -14).times(Mat4.scale(5.5, 3.5, 5.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_cave1, this.materials.cave_texture);
+
+    let model_transform_cave2 = Mat4.translation(-16, 2, 0).times(Mat4.scale(3.5, 4.5, 5.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_cave2, this.materials.cave_texture);
 
     // draw coral
     let model_transform = Mat4.scale(5, 5, 5);
