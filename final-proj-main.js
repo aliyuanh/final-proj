@@ -1067,8 +1067,23 @@ export class Final_Proj extends Final_Proj_base {
     let model_transform_cave1 = Mat4.translation(15, 2, -14).times(Mat4.scale(5.5, 3.5, 5.5));
     this.shapes.cave.draw(caller, this.uniforms, model_transform_cave1, this.materials.cave_texture);
 
+    let model_transform_small1 = Mat4.translation(12, 0, -10).times(Mat4.scale(1.5, 1, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small1, this.materials.cave_texture);
+
+    let model_transform_small2 = Mat4.translation(10.5, 0.4, -11).times(Mat4.scale(1.5, .75, 1));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small2, this.materials.cave_texture);
+
+    let model_transform_small3 = Mat4.translation(20.5, 0.4, -13).times(Mat4.scale(2.5, 1.75, 2));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small3, this.materials.cave_texture);
+
     let model_transform_cave2 = Mat4.translation(-16, 2, 0).times(Mat4.scale(3.5, 4.5, 5.5));
     this.shapes.cave.draw(caller, this.uniforms, model_transform_cave2, this.materials.cave_texture);
+
+    let model_transform_med1 = Mat4.translation(-12, 0, 0).times(Mat4.scale(1.75, 2, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_med1, this.materials.cave_texture);
+
+    let model_transform_med2 = Mat4.translation(-15, 0.4, 4).times(Mat4.scale(1.5, 2, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_med2, this.materials.cave_texture);
 
     // draw coral
     let model_transform = Mat4.scale(5, 5, 5);
