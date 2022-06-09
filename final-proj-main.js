@@ -748,7 +748,7 @@ export class Final_Proj extends Final_Proj_base {
       yellow = color(1, 0.7, 0, 1),
       red = color(1, 0, 0, 1);
     const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
-    const ocean = color(0, 105 / 255, 148 / 255, 0.5);
+    const ocean = color(173/255, 126 / 255, 230 / 255, .9);
     const lightShellColor = color(226 / 255, 223 / 255, 210 / 255, 0.75);
     const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
@@ -793,16 +793,27 @@ export class Final_Proj extends Final_Proj_base {
     //random shells
     let firstShellTransform = Mat4.translation(-5, 1, -15)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
-      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
+      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(.8, .8, .8));
     this.shapes.shell.draw(caller, this.uniforms, firstShellTransform, {
       ...this.materials.metal,
       color: lightShellColor,
     });
+
     let secondShellTransform = Mat4.translation(-13, 1, -20)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
       //.times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
       .times(Mat4.scale(.5, .5, .5));
     this.shapes.shell.draw(caller, this.uniforms, secondShellTransform, {
+      ...this.materials.metal,
+      color: darkShellColor,
+    });
+
+    let thirdShellTransform = Mat4.translation(18, 1, -9)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(2*Math.PI / 3, 0, 1, 0))
+      .times(Mat4.scale(.3, .3, .3));
+    this.shapes.shell.draw(caller, this.uniforms, thirdShellTransform, {
       ...this.materials.metal,
       color: darkShellColor,
     });
