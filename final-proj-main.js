@@ -511,7 +511,25 @@ export const Final_Proj_base =
         ambient: 0.3, 
         diffusivity: 1, 
         specularity: .4,
-        texture: new Texture("assets/rock.jpg", "LINEAR_MIPMAP_LINEAR")
+        texture: new Texture("assets/rock.jpg")
+      };
+
+      this.materials.pink_coral = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+        color: color(244/255, 194/255, 194/255, 1),
+       texture: new Texture("assets/pinkcoral.jpeg")
+      };
+
+      this.materials.blue_coral = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+        color: color(173/255, 216/255, 230/255, 1),
+        texture: new Texture("assets/bluecoral.jpeg")
       };
 
       //Limb implementation
@@ -1155,55 +1173,55 @@ export class Final_Proj extends Final_Proj_base {
       caller,
       this.uniforms,
       branch1_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch2_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch3_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch4_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch5_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch6_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch7_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch8_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch9_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
 
     model_transform = Mat4.scale(5, 5, 5);
@@ -1264,55 +1282,55 @@ export class Final_Proj extends Final_Proj_base {
       caller,
       this.uniforms,
       branch1_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch2_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch3_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch4_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch5_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch6_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch7_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch8_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch9_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
   }
 
