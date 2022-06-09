@@ -465,6 +465,8 @@ export const Final_Proj_base =
         axis: new defs.Axis_Arrows(),
         shell: new Shape_From_File("./assets/seashell.obj"),
         octo: new Shape_From_File("./assets/octo.obj"),
+        cave: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
+        // cave: new defs.Subdivision_Sphere(2),
       };
 
       // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -502,6 +504,16 @@ export const Final_Proj_base =
         specularity: 1,
         color: color(0.1, 0.1, 0.9, 1),
       };
+
+      this.materials.cave_texture = {
+        shader: tex_phong,
+        color: color(0.5, 0.5, 0.5, 1),
+        ambient: 0.3, 
+        diffusivity: 1, 
+        specularity: .4,
+        texture: new Texture("assets/rock.jpg", "LINEAR_MIPMAP_LINEAR")
+      };
+
       //Limb implementation
       this.spring_method = (p, t, x) => sym_euler(p, t, x);
       let ks = 8.9;
@@ -523,8 +535,8 @@ export const Final_Proj_base =
 
       //Rocks -- must be made FIRST
       this.rocks = [];
-      this.rocks.push(new Rock(vec3(5, 0, -15), vec3(5, 5, 5)));
-      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2, 4, 5)));
+      this.rocks.push(new Rock(vec3(15, 0, -15), vec3(4, 4, 4)));
+      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2, 3, 4)));
 
       const LimbTransformArray = [
         Mat4.translation(0, -2, 3),
@@ -737,7 +749,8 @@ export class Final_Proj extends Final_Proj_base {
       red = color(1, 0, 0, 1);
     const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
     const ocean = color(0, 105 / 255, 148 / 255, 0.5);
-    const shellColor = color(226 / 255, 223 / 255, 210 / 255, 0.5);
+    const lightShellColor = color(226 / 255, 223 / 255, 210 / 255, 0.75);
+    const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
     const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
     const white = color(1, 1, 1, 1);
@@ -775,18 +788,26 @@ export class Final_Proj extends Final_Proj_base {
         )
       );
       this.shapes.box.draw(caller, this.uniforms, rock_transform, {
-        ...this.materials.metal,
-        color: shellColor,
+        ...this.materials.cave_texture,
+        color: lightShellColor,
       });
     }
 
-    //random shell
-    let shellTransform = Mat4.translation(-5, 1, -15)
+    //random shells
+    let firstShellTransform = Mat4.translation(-5, 1, -15)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
       .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
-    this.shapes.shell.draw(caller, this.uniforms, shellTransform, {
+    this.shapes.shell.draw(caller, this.uniforms, firstShellTransform, {
       ...this.materials.metal,
-      color: shellColor,
+      color: lightShellColor,
+    });
+    let secondShellTransform = Mat4.translation(-13, 1, -20)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      //.times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(.5, .5, .5));
+    this.shapes.shell.draw(caller, this.uniforms, secondShellTransform, {
+      ...this.materials.metal,
+      color: darkShellColor,
     });
 
     // draw fishy, topPos is location of re
@@ -1043,6 +1064,10 @@ export class Final_Proj extends Final_Proj_base {
       ...this.materials.plastic,
       color: black,
     });
+
+    //draw cave
+    let model_transform_cave = Mat4.scale(5, 5, 5);
+    this.shapes.ball.draw(caller, this.uniforms, model_transform_cave, this.materials.cave_texture);
 
     // draw coral
     let model_transform = Mat4.scale(5, 5, 5);
