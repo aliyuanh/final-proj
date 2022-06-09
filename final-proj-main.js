@@ -464,8 +464,12 @@ export const Final_Proj_base =
         ball: new defs.Subdivision_Sphere(4),
         axis: new defs.Axis_Arrows(),
         shell: new Shape_From_File("./assets/seashell.obj"),
+        shell2: new Shape_From_File("./assets/shell2.obj"),
         octo: new Shape_From_File("./assets/octo.obj"),
         cave: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
+        starfish: new Shape_From_File("./assets/starfish.obj"),
+        fish: new Shape_From_File("./assets/fish.obj"),
+        cone : new defs.Cone_Tip ( 2, 10,  [[0.5,0],[0.5,0]] ),
         // cave: new defs.Subdivision_Sphere(2),
       };
 
@@ -520,7 +524,7 @@ export const Final_Proj_base =
         diffusivity: 1,
         specularity: 1,
         color: color(244/255, 194/255, 194/255, 1),
-       texture: new Texture("assets/pinkcoral.jpeg")
+        texture: new Texture("assets/pinkcoral.jpeg")
       };
 
       this.materials.blue_coral = {
@@ -531,6 +535,8 @@ export const Final_Proj_base =
         color: color(173/255, 216/255, 230/255, 1),
         texture: new Texture("assets/bluecoral.jpeg")
       };
+
+      this.audio = new Audio("assets/somethingfishy.mp3");
 
       //Limb implementation
       this.spring_method = (p, t, x) => sym_euler(p, t, x);
@@ -643,12 +649,15 @@ export const Final_Proj_base =
       this.spline = new Hermite_Spline();
       this.sample_count = 1000;
       const tangentScale = 10;
+      let dx = 11;
+      let dy = 3;
+      let dz = -18;
       //Note: must be done to avoid WebGL complaints
-      this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
-      this.spline.add_point(10 + 2, 3, 20 - 3, 50, 0, 0);
-      this.spline.add_point(20 + 2, 3, 10 - 3, 0, 0, -50);
-      this.spline.add_point(10 + 2, 3, 0 - 3, -50, 0, 0);
-      this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
+      this.spline.add_point(0 + dx, 3 + dy, 4 + dz, 0, 0, 5);
+      this.spline.add_point(4 + dx, 3 + dy, 8 + dz, 5, 0, 0);
+      this.spline.add_point(8 + dx, 3 + dy, 4 + dz, 0, 0, -5);
+      this.spline.add_point(4 + dx, 3 + dy, 0 + dz, -5, 0, 0);
+      this.spline.add_point(0 + dx, 3 + dy, 4 + dz, 0, 0, 5);
 
       //const curve_func = (t) => vec3(0,0,0);
       const curve_func = (t) => this.spline.get_position(t);
@@ -725,6 +734,7 @@ export const Final_Proj_base =
 
       // draw axis arrows.
       //this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+      this.audio.play();
     }
   });
 
@@ -769,6 +779,7 @@ export class Final_Proj extends Final_Proj_base {
     const ocean = color(173/255, 126 / 255, 230 / 255, .9);
     const lightShellColor = color(226 / 255, 223 / 255, 210 / 255, 0.75);
     const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
+    const starfishColor = color(250 / 255, 0 / 255, 127 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
     const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
     const white = color(1, 1, 1, 1);
@@ -818,11 +829,11 @@ export class Final_Proj extends Final_Proj_base {
       color: lightShellColor,
     });
 
-    let secondShellTransform = Mat4.translation(-13, 1, -20)
+    let secondShellTransform = Mat4.translation(-15, 1, -20)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
-      //.times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
-      .times(Mat4.scale(.5, .5, .5));
-    this.shapes.shell.draw(caller, this.uniforms, secondShellTransform, {
+      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(1.1, 1.1, 1.1));
+    this.shapes.shell2.draw(caller, this.uniforms, secondShellTransform, {
       ...this.materials.metal,
       color: darkShellColor,
     });
@@ -836,14 +847,29 @@ export class Final_Proj extends Final_Proj_base {
       color: darkShellColor,
     });
 
-    // draw fishy, topPos is location of re
+    //starfish!
+    let starfishTransform = Mat4.translation(10, 1, 0)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI / 2, 0, 1, 0))
+      .times(Mat4.scale(1.2, 1.2, 1.2));
+    this.shapes.starfish.draw(caller, this.uniforms, starfishTransform, {
+      ...this.materials.metal,
+      color: starfishColor,
+    });
+
+
+    // draw fish on rock, topPos is location of spline
     const spline_transform = Mat4.identity();
-    this.curve.draw(caller, this.uniforms, spline_transform);
+    //this.curve.draw(caller, this.uniforms, spline_transform);
 
     var currT = ((this.t + 5) % 5) / 5;
     const topPos = this.spline.get_position(currT);
 
-    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(...topPos), {
+    const fish_transform = Mat4.translation(...topPos)
+    .times(Mat4.rotation(Math.PI / 2, 0, 0, 1))
+    .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+
+    this.shapes.fish.draw(caller, this.uniforms, fish_transform, {
       ...this.materials.plastic,
       color: ocean,
     });
