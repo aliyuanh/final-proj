@@ -636,6 +636,12 @@ export const Final_Proj_base =
       this.limb_transf = [];
     }
 
+    computeMovement(target) {
+      if (this.octopus != null) {
+        this.octopus.updateOctopus(target, 0);
+      }
+    }
+
     render_animation(caller) {
       // display():  Called once per frame of animation.  We'll isolate out
       // the code that actually draws things into Assignment2, a
@@ -783,6 +789,18 @@ export class Final_Proj extends Final_Proj_base {
       color: shellColor,
     });
 
+    // draw fishy, topPos is location of re
+    const spline_transform = Mat4.identity();
+    this.curve.draw(caller, this.uniforms, spline_transform);
+
+    var currT = ((this.t + 5) % 5) / 5;
+    const topPos = this.spline.get_position(currT);
+
+    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(...topPos), {
+      ...this.materials.plastic,
+      color: ocean,
+    });
+
     if (!this.ik) {
       // draw particles and arms of octopus
       for (let i = 0; i < this.limbs.length; i++) {
@@ -790,10 +808,10 @@ export class Final_Proj extends Final_Proj_base {
           let particleTransform = this.limbs[i].transf.times(
             this.limbs[i].particles[j].transf.times(Mat4.scale(0.3, 0.3, 0.3))
           );
-        //   this.shapes.ball.draw(caller, this.uniforms, particleTransform, {
-        //     ...this.materials.metal,
-        //     color: octoColor,
-        //   });
+          this.shapes.ball.draw(caller, this.uniforms, particleTransform, {
+            ...this.materials.metal,
+            color: octoColor,
+          });
         }
       }
       // draw limbs
@@ -859,8 +877,7 @@ export class Final_Proj extends Final_Proj_base {
               }
               for (let l = 0; l < limb_i_positions.length; l++)
                 for (let k = 0; k < 3; k++) {
-                  new_pos[k][3] -=
-                    limb_i_positions[l][k][3];
+                  new_pos[k][3] -= limb_i_positions[l][k][3];
                 }
             }
             limb_i_positions.push(new_pos);
@@ -906,10 +923,13 @@ export class Final_Proj extends Final_Proj_base {
         console.log(this.octopus);
         this.ik = true;
       }
+
       this.octopus.draw(caller, this.uniforms, {
         ...this.materials.metal,
         color: octoColor,
       });
+
+      this.computeMovement(topPos);
     }
 
     // draw seaweed
@@ -1242,17 +1262,6 @@ export class Final_Proj extends Final_Proj_base {
       branch9_model,
       this.materials.plastic
     );
-
-    const spline_transform = Mat4.identity();
-    this.curve.draw(caller, this.uniforms, spline_transform);
-
-    var currT = ((this.t + 5) % 5) / 5;
-    const topPos = this.spline.get_position(currT);
-
-    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(...topPos), {
-      ...this.materials.plastic,
-      color: ocean,
-    });
   }
 
   render_controls() {

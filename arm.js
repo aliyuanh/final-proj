@@ -25,7 +25,6 @@ export const Articulated_Octopus = class Articulated_Octopus {
     this.body_arcs = [];
     this.upper_arcs = [];
     this.middle_arcs = [];
-    this.lower_arcs = [];
 
     this.upper_arms = [];
     this.middle_arms = [];
@@ -39,14 +38,9 @@ export const Articulated_Octopus = class Articulated_Octopus {
       let body_loc = particles_transform[i][0];
       let upper_loc = particles_transform[i][1];
       let mid_loc = particles_transform[i][2];
-      let lower_loc = particles_transform[i][3];
+      let lower_loc = particles_transform[i][3]
 
-      // for (let i = 0; i < 4; i++) {
-      //   body_loc[i][3] -= torso_loc[i][3]
-      // }
-      console.log(body_loc);
-
-      let upper_node = new Node("upper " + i, box_shape, limbs_transform[i][0]);
+      let upper_node = new Node("upper " + i, box_shape, u_arm_transform);
       let body_arc = new Arc(
         "body " + i,
         this.torso_node,
@@ -57,13 +51,13 @@ export const Articulated_Octopus = class Articulated_Octopus {
       let middle_node = new Node(
         "middle " + i,
         box_shape,
-        limbs_transform[i][1]
+        m_arm_transform
       );
-      let upper_arc = new Arc("upper " + i, upper_node, middle_node, upper_loc);
 
+      let upper_arc = new Arc("upper " + i, upper_node, middle_node, upper_loc);
       let lower_node = new Node("lower " + i, box_shape, l_arm_transform);
       let middle_arc = new Arc("middle " + i, middle_node, lower_node, mid_loc);
-
+      
       this.body_arcs.push(body_arc);
       this.upper_arcs.push(upper_arc);
       this.middle_arcs.push(middle_arc);
@@ -91,31 +85,32 @@ export const Articulated_Octopus = class Articulated_Octopus {
     );
   }
 
-  updatePerson(target, depth) {
-    let iden = Vector.create(1);
-    let newThetas = this.computeJacobian(target);
-    let thetas = [0, 0, 0, 0, 0, 0, 0]; //7 0's
-    for (let i = 0; i < 7; i++) {
-      thetas[i] = newThetas.row(i).dot(iden);
-    }
-    //x then y then z
-    let shoulderRot = Mat4.rotation(thetas[2], 0, 0, 1);
-    shoulderRot = shoulderRot.times(Mat4.rotation(thetas[1], 0, 1, 0));
-    shoulderRot = shoulderRot.times(Mat4.rotation(thetas[0], 1, 0, 0));
-    //x then y
-    let elbowRot = Mat4.rotation(thetas[4], 0, 1, 0);
-    elbowRot = elbowRot.times(Mat4.rotation(thetas[3], 1, 0, 0));
-    //y then z
-    let wristRot = Mat4.rotation(thetas[6], 0, 0, 1);
-    wristRot = wristRot.times(Mat4.rotation(thetas[5], 0, 1, 0));
-    this.r_shoulder.articulation_matrix =
-      this.r_shoulder.articulation_matrix.times(shoulderRot);
-    this.r_elbow.articulation_matrix =
-      this.r_elbow.articulation_matrix.times(elbowRot);
-    this.r_wrist.articulation_matrix =
-      this.r_wrist.articulation_matrix.times(wristRot);
-    //calculate new error
-    let endEffector = this.getEndEffector(this.root, Mat4.identity(), 0);
+  updateArm(i, target, depth, thetas) {
+    let upperRot = Mat4.rotation(thetas[9 * i + 2], 0, 0, 1)
+      .times(Mat4.rotation(thetas[9 * i + 1], 0, 1, 0))
+      .times(Mat4.rotation(thetas[9 * i], 1, 0, 0));
+
+    let middleRot = Mat4.rotation(thetas[9 * i + 5], 0, 0, 1)
+      .times(Mat4.rotation(thetas[9 * i + 4], 0, 1, 0))
+      .times(Mat4.rotation(thetas[9 * i + 3], 1, 0, 0));
+
+    let lowerRot = Mat4.rotation(thetas[9 * i + 8], 0, 0, 1)
+      .times(Mat4.rotation(thetas[9 * i + 7], 0, 1, 0))
+      .times(Mat4.rotation(thetas[9 * i + 6], 1, 0, 0));
+
+    // NOTE: commented out various lines so observe individual angle changes
+    
+    // this.body_arcs[i].articulation_matrix =
+    //   this.body_arcs[i].articulation_matrix.times(upperRot);
+
+    this.upper_arcs[i].articulation_matrix =
+      this.upper_arcs[i].articulation_matrix.times(middleRot);
+
+    // this.middle_arcs[i].articulation_matrix =
+    //   this.middle_arcs[i].articulation_matrix.times(lowerRot);
+
+    // calcalate error and keep going
+    let endEffector = this.getEndEffector(this.root, Mat4.identity(), i);
     const endEffPos = vec3(
       endEffector[0][3],
       endEffector[1][3],
@@ -126,54 +121,58 @@ export const Articulated_Octopus = class Articulated_Octopus {
 
     //max iterations of this will be 10
     //I do not want to burn your computer
-    if (error > this.allowedError && depth < 90) {
-      this.updatePerson(target, depth + 1);
+    if (error > this.allowedError && depth < 10) {
+      this.updateArm(i, target, depth + 1, thetas);
     }
   }
 
-  computeJacobian(target) {
-    this.matrix_stack = [];
-    let endEffector = this.getEndEffector(this.root, Mat4.identity(), 0);
-    //must account for hand length, 0.4
-    //endEffector = endEffector.times(Mat4.translation(0.4, 0, 0));
+  updateOctopus(target, depth) {
+    let iden = Vector.create(1);
+    let newThetas = this.computeJacobian(target);
+    // let thetas = [0, 0, 0, 0, 0, 0, 0]; //7 0's
+    let thetas = new Array(8 * 3 * 3).fill(0);
+    for (let i = 0; i < thetas.length; i++) {
+      thetas[i] = newThetas[i]
+    }
+    // go through each of 8 arms
+
+    // NOTE: change end of i to 1 so only one arm moves
+    for (let i = 0; i < 1; i++) {
+      this.updateArm(i, target, depth, thetas);
+    }
+  }
+
+  computeJacobianForArm(target, i) {
+    let endEffector = this.getEndEffector(this.root, Mat4.identity(), i);
     const endEffPos = vec3(
       endEffector[0][3],
       endEffector[1][3],
       endEffector[2][3]
     );
-    //x, y, z of shoulder
-    //get vector from shoulder joint to end effector
-    //rotation axis cross the vector
-    //this is a column of the matrix
+
     let pos = this.root.location_matrix;
-    pos = pos.times(this.r_shoulder.location_matrix);
-    //console.log("Shoulder position:");
-    //console.log(pos);
-    //calculate shoulder to end effector
-    let shoulderPosition = vec3(pos[0][3], pos[1][3], pos[2][3]);
-    //console.log(shoulderPosition);
-    let r = endEffPos.minus(shoulderPosition);
-    //console.log("crossing this!");
-    //console.log(r);
+    pos = pos.times(this.body_arcs[i].location_matrix);
+
+    let body_arc_position = vec3(pos[0][3], pos[1][3], pos[2][3]);
+    let r = endEffPos.minus(body_arc_position);
     let row1 = vec3(1, 0, 0).cross(r);
     let row2 = vec3(0, 1, 0).cross(r);
     let row3 = vec3(0, 0, 1).cross(r);
-    //x, y elbow
-    pos = pos.times(this.r_elbow.location_matrix);
-    let elbowPosition = vec3(pos[0][3], pos[1][3], pos[2][3]);
-    r = endEffPos.minus(elbowPosition);
+
+    pos = pos.times(this.upper_arcs[i].location_matrix);
+    let upper_arc_position = vec3(pos[0][3], pos[1][3], pos[2][3]);
+    r = endEffPos.minus(upper_arc_position);
     let row4 = vec3(1, 0, 0).cross(r);
     let row5 = vec3(0, 1, 0).cross(r);
-    //console.log("Elbow position:");
-    //console.log(pos);
-    //y, z wrist
-    pos = pos.times(this.r_wrist.location_matrix);
-    let wristPosition = vec3(pos[0][3], pos[1][3], pos[2][3]);
-    r = endEffPos.minus(wristPosition);
-    let row6 = vec3(0, 1, 0).cross(r);
-    let row7 = vec3(0, 0, 1).cross(r);
-    //console.log("Wrist position:");
-    //console.log(pos);
+    let row6 = vec3(0, 0, 1).cross(r);
+
+    pos = pos.times(this.middle_arcs[i].location_matrix);
+    let middle_arc_position = vec3(pos[0][3], pos[1][3], pos[2][3]);
+    r = endEffPos.minus(middle_arc_position);
+    let row7 = vec3(1, 0, 0).cross(r);
+    let row8 = vec3(0, 1, 0).cross(r);
+    let row9 = vec3(0, 0, 1).cross(r);
+
     let J = Matrix.create(
       [row1[0], row1[1], row1[2]],
       [row2[0], row2[1], row2[2]],
@@ -181,35 +180,55 @@ export const Articulated_Octopus = class Articulated_Octopus {
       [row4[0], row4[1], row4[2]],
       [row5[0], row5[1], row5[2]],
       [row6[0], row6[1], row6[2]],
-      [row7[0], row7[1], row7[2]]
-    ).transpose;
+      [row7[0], row7[1], row7[2]],
+      [row8[0], row8[1], row8[2]],
+      [row9[0], row9[1], row9[2]]
+    ).transpose
+
     let JPlus = J.pseudoInverse();
-    //console.log(JPlus.toString());
+
     let error = target.minus(endEffPos);
     let k = 0.15;
     let dx = error.times(k);
     let dxArray = Matrix.create([dx[0], dx[1], dx[2]]).transpose;
     let dTheta = JPlus.mult(dxArray);
+
     return dTheta;
   }
 
-  getEndEffector(arc, matrix, depth) {
+  computeJacobian(target) {
+    this.dddkmatrix_stack = [];
+    let dthetas = [];
+    for (let i = 0; i < 8; i++) {
+      dthetas.push(this.computeJacobianForArm(target, i));
+    }
+
+    let d = []
+    for (let i = 0; i < dthetas.length; i++) {
+      for (let j = 0; j < 9; j++) {
+        d.push(dthetas[i][j][0]);
+      }
+    }
+    return d
+  }
+
+  getEndEffector(arc, matrix, i) {
     //this.matrix_stack = [];
     let loc = this.root.location_matrix;
     let myarc = this.root.articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
-    loc = this.r_shoulder.location_matrix;
-    myarc = this.r_shoulder.articulation_matrix;
+    loc = this.body_arcs[i].location_matrix;
+    myarc = this.body_arcs[i].articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
-    loc = this.r_elbow.location_matrix;
-    myarc = this.r_elbow.articulation_matrix;
+    loc = this.upper_arcs[i].location_matrix;
+    myarc = this.upper_arcs[i].articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
-    loc = this.r_wrist.location_matrix;
-    myarc = this.r_wrist.articulation_matrix;
+    loc = this.middle_arcs[i].location_matrix;
+    myarc = this.middle_arcs[i].articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
-    //account for hand length
-    matrix.post_multiply(Mat4.translation(0.5, 0, 0));
-    //console.log(matrix);
+    // //account for hand length
+    // matrix.post_multiply(Mat4.translation(0.5, 0, 0));
+    // //console.log(matrix);
     return matrix;
   }
 
@@ -223,12 +242,6 @@ export const Articulated_Octopus = class Articulated_Octopus {
       const node = arc.child_node;
       const T = node.transform_matrix;
       matrix.post_multiply(T);
-      // if (node.name == "lower 6") {
-      //   console.log(node);
-      // }
-      if (arc.name == "lower 6") {
-        console.log(arc);
-      }
       node.shape.draw(webgl_manager, uniforms, matrix, material);
 
       matrix = this.matrix_stack.pop();
