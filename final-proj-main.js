@@ -634,6 +634,8 @@ export const Final_Proj_base =
       this.octopus = null;
       this.limb_positions = [];
       this.limb_transf = [];
+
+      this.camera_position = vec3(0, 10, -10);
     }
 
     computeMovement(target) {
@@ -840,7 +842,42 @@ export class Final_Proj extends Final_Proj_base {
           });
         }
       }
-      this.octopusPosition = this.octopusPosition.times(this.octopusDirection);
+    this.octopusPosition = this.octopusPosition.times(this.octopusDirection);
+    console.log("new octo position: " + vec3(this.octopusPosition[0][3], this.octopusPosition[1][3], this.octopusPosition[2][3]));
+    console.log("camera position " + this.camera_position);
+
+    if (this.octopusPosition[1][3]>(this.camera_position[1]+6)) {
+        this.camera_position = vec3(this.camera_position[0], this.camera_position[1]+8, this.camera_position[2]);
+        Shader.assign_camera(
+            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+            this.uniforms
+        );
+    }
+
+    if (this.octopusPosition[1][3]<(this.camera_position[1]-4)) {
+        this.camera_position = vec3(this.camera_position[0], this.camera_position[1]-8, this.camera_position[2]);
+        Shader.assign_camera(
+            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+            this.uniforms
+        );
+    }
+
+    if (this.octopusPosition[0][3]>(this.camera_position[0]+6)) {
+            this.camera_position = vec3(this.camera_position[0]+8, this.camera_position[1], this.camera_position[2]);
+            Shader.assign_camera(
+                Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+                this.uniforms
+            );
+    }
+
+    if (this.octopusPosition[0][3]<(this.camera_position[0]-6)) {
+        this.camera_position = vec3(this.camera_position[0]-8, this.camera_position[1], this.camera_position[2]);
+        Shader.assign_camera(
+            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+            this.uniforms
+        );
+    }
+
 
       //apply octopus movement to all the limbs too
       for (let i = 0; i < this.limbs.length; i++) {
