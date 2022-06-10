@@ -536,6 +536,13 @@ export const Final_Proj_base =
         texture: new Texture("assets/bluecoral.jpeg")
       };
 
+      this.materials.ocean = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+      };
+
       this.audio = new Audio("assets/somethingfishy.mp3");
 
       //Limb implementation
@@ -777,7 +784,7 @@ export class Final_Proj extends Final_Proj_base {
       yellow = color(1, 0.7, 0, 1),
       red = color(1, 0, 0, 1);
     const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
-    const ocean = color(173/255, 126 / 255, 230 / 255, .9);
+    const ocean = color(225/255, 246 / 255, 225 / 255, 1);
     const lightShellColor = color(226 / 255, 223 / 255, 210 / 255, 0.75);
     const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
     const starfishColor = color(250 / 255, 0 / 255, 127 / 255, 0.75);
@@ -799,7 +806,7 @@ export class Final_Proj extends Final_Proj_base {
     //skybox
     let skybox_transform = Mat4.scale(50, 50, 50);
     this.shapes.ball.draw(caller, this.uniforms, skybox_transform, {
-      ...this.materials.plastic,
+      ...this.materials.ocean,
       color: ocean,
     });
 
