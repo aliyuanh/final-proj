@@ -648,10 +648,20 @@ export const Final_Proj_base =
           0.5,
           vec3(Math.random() * 8 - 4, n + 3, Math.random() * 8 - 4)
         );
+        this.seaweed[i].add_particle(
+          0.5,
+          vec3(Math.random() * 8 - 4, n + 4, Math.random() * 8 - 4)
+        );
+        this.seaweed[i].add_particle(
+          0.5,
+          vec3(Math.random() * 8 - 4, n + 5, Math.random() * 8 - 4)
+        );
         this.seaweed[i].add_link(0, 1, seaweed_ks, seaweed_kd, len / 2);
         this.seaweed[i].add_link(1, 2, seaweed_ks, seaweed_kd, len / 2);
         this.seaweed[i].add_link(2, 3, seaweed_ks, seaweed_kd, len / 2);
         this.seaweed[i].add_link(3, 4, seaweed_ks, seaweed_kd, len / 2);
+        this.seaweed[i].add_link(4, 5, seaweed_ks, seaweed_kd, len / 2);
+        this.seaweed[i].add_link(5, 6, seaweed_ks, seaweed_kd, len / 2);
       }
 
       this.spline = new Hermite_Spline();
@@ -790,6 +800,12 @@ export class Final_Proj extends Final_Proj_base {
     const starfishColor = color(250 / 255, 0 / 255, 127 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
     const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
+    const conchColor = color(256 / 255, 127 / 255, 80 / 255, 0.5);
+
+    const orangeFish = color(255 / 255, 179 / 255, 71 / 255, 0.8)
+    const purpleFish = color(177 / 255, 156 / 255, 217 / 255, 0.8);
+    const blueFish = color(173 / 255, 216 / 255, 230 / 255, 0.8);
+
     const white = color(1, 1, 1, 1);
     const black = color(0, 0, 0, 1);
 
@@ -828,22 +844,49 @@ export class Final_Proj extends Final_Proj_base {
     }
 
     //random shells
-    let firstShellTransform = Mat4.translation(-5, 1, -15)
+    let firstShellTransform = Mat4.translation(-5, 1, -20)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
       .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
-      .times(Mat4.scale(.8, .8, .8));
+      .times(Mat4.scale(.5, .5, .5));
     this.shapes.shell.draw(caller, this.uniforms, firstShellTransform, {
       ...this.materials.metal,
       color: lightShellColor,
     });
 
-    let secondShellTransform = Mat4.translation(-15, 1, -20)
+    let first2 = Mat4.translation(10, 1, -25)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
-      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
-      .times(Mat4.scale(1.1, 1.1, 1.1));
-    this.shapes.shell2.draw(caller, this.uniforms, secondShellTransform, {
+      .times(Mat4.rotation(-Math.PI / 8, 1, 0, 0))
+      .times(Mat4.scale(.4, .4, .4));
+    this.shapes.shell.draw(caller, this.uniforms, first2, {
       ...this.materials.metal,
       color: darkShellColor,
+    });
+
+    let first3 = Mat4.translation(-10, 1, -30)
+      .times(Mat4.rotation(Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI / 8, 1, 0, 0))
+      .times(Mat4.scale(.4, .4, .4));
+    this.shapes.shell.draw(caller, this.uniforms, first3, {
+      ...this.materials.metal,
+      color: lightShellColor,
+    });
+
+    let first4 = Mat4.translation(-19, 1, -15)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI, 1, 0, 0))
+      .times(Mat4.scale(.4, .4, .4));
+    this.shapes.shell.draw(caller, this.uniforms, first4, {
+      ...this.materials.metal,
+      color: lightShellColor,
+    });
+
+    let secondShellTransform = Mat4.translation(-15, 1, -27)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(1.4, 1.4, 1.4));
+    this.shapes.shell2.draw(caller, this.uniforms, secondShellTransform, {
+      ...this.materials.metal,
+      color: conchColor,
     });
 
     let thirdShellTransform = Mat4.translation(18, 1, -9)
@@ -853,6 +896,15 @@ export class Final_Proj extends Final_Proj_base {
     this.shapes.shell.draw(caller, this.uniforms, thirdShellTransform, {
       ...this.materials.metal,
       color: darkShellColor,
+    });
+
+    let fourthShellTransform = Mat4.translation(12, 4, -10)
+      .times(Mat4.rotation(-3 * Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(2*Math.PI / 3, 0, 1, 0))
+      .times(Mat4.scale(.3, .3, .3));
+    this.shapes.shell.draw(caller, this.uniforms, fourthShellTransform, {
+      ...this.materials.metal,
+      color: lightShellColor,
     });
 
     //starfish!
@@ -879,8 +931,29 @@ export class Final_Proj extends Final_Proj_base {
 
     this.shapes.fish.draw(caller, this.uniforms, fish_transform, {
       ...this.materials.plastic,
-      color: ocean,
+      color: orangeFish,
     });
+
+    let x_trans = this.t % 75 - 45;
+    const fish2_transform = Mat4.translation(x_trans, 10, -15)
+    .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+    .times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
+
+    this.shapes.fish.draw(caller, this.uniforms, fish2_transform, {
+      ...this.materials.plastic,
+      color: purpleFish,
+    });
+
+    let x_trans1 = -1 * (this.t % 80) + 40;
+    const fish3_transform = Mat4.translation(x_trans1, 25, -30)
+    .times(Mat4.rotation(Math.PI / 2, 0, 0, 1))
+    .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+
+    this.shapes.fish.draw(caller, this.uniforms, fish3_transform, {
+      ...this.materials.plastic,
+      color: blueFish,
+    });
+
 
     if (!this.ik) {
       // draw particles and arms of octopus
@@ -1044,12 +1117,12 @@ export class Final_Proj extends Final_Proj_base {
         });
 
         const transf3 = this.limbs[i].transf.times(
-          Mat4.translation(newPos[0] + 8, newPos[1], newPos[2] + 5).times(
+          Mat4.translation(newPos[0] + 10, newPos[1], newPos[2] - 6).times(
             Mat4.scale(0.2, 0.5, 0.2)
           )
         );
         const transf4 = this.limbs[i].transf.times(
-          Mat4.translation(newPos2[0] + 8, newPos2[1], newPos2[2] + 5).times(
+          Mat4.translation(newPos2[0] + 18, newPos2[1], newPos2[2] - 3).times(
             Mat4.scale(0.2, 0.5, 0.2)
           )
         );
@@ -1079,6 +1152,26 @@ export class Final_Proj extends Final_Proj_base {
           color: seaweedColor,
         });
         this.shapes.box.draw(caller, this.uniforms, transf6, {
+          ...this.materials.metal,
+          color: seaweedColor,
+        });
+
+        const transf7 = this.limbs[i].transf.times(
+          Mat4.translation(newPos[0] - 5, newPos[1], newPos[2] - 8).times(
+            Mat4.scale(0.2, 0.5, 0.2)
+          )
+        );
+        const transf8 = this.limbs[i].transf.times(
+          Mat4.translation(newPos2[0] - 22, newPos2[1], newPos2[2] - 4).times(
+            Mat4.scale(0.2, 0.5, 0.2)
+          )
+        );
+
+        this.shapes.box.draw(caller, this.uniforms, transf7, {
+          ...this.materials.metal,
+          color: seaweedColor,
+        });
+        this.shapes.box.draw(caller, this.uniforms, transf8, {
           ...this.materials.metal,
           color: seaweedColor,
         });
