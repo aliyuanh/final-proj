@@ -432,7 +432,7 @@ const Limb = class Limb {
             //we have collided! now determine which direction to hit the particle in...
             //console.log("collision!!");
             let diff = particlePos.minus(rock.position);
-            diff = diff.times(25);
+            diff = diff.times(10);
             this.particles[i].apply_force(diff);
           }
         }
@@ -464,7 +464,13 @@ export const Final_Proj_base =
         ball: new defs.Subdivision_Sphere(4),
         axis: new defs.Axis_Arrows(),
         shell: new Shape_From_File("./assets/seashell.obj"),
+        shell2: new Shape_From_File("./assets/shell2.obj"),
         octo: new Shape_From_File("./assets/octo.obj"),
+        cave: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
+        starfish: new Shape_From_File("./assets/starfish.obj"),
+        fish: new Shape_From_File("./assets/fish.obj"),
+        cone : new defs.Cone_Tip ( 2, 10,  [[0.5,0],[0.5,0]] ),
+        // cave: new defs.Subdivision_Sphere(2),
       };
 
       // *** Materials: ***  A "material" used on individual shapes specifies all fields
@@ -502,6 +508,36 @@ export const Final_Proj_base =
         specularity: 1,
         color: color(0.1, 0.1, 0.9, 1),
       };
+
+      this.materials.cave_texture = {
+        shader: tex_phong,
+        color: color(90/255, 90/255, 90/255, 1),
+        ambient: 0.3, 
+        diffusivity: 1, 
+        specularity: .4,
+        texture: new Texture("assets/rock.jpg")
+      };
+
+      this.materials.pink_coral = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+        color: color(244/255, 194/255, 194/255, 1),
+        texture: new Texture("assets/pinkcoral.jpeg")
+      };
+
+      this.materials.blue_coral = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+        color: color(173/255, 216/255, 230/255, 1),
+        texture: new Texture("assets/bluecoral.jpeg")
+      };
+
+      this.audio = new Audio("assets/somethingfishy.mp3");
+
       //Limb implementation
       this.spring_method = (p, t, x) => sym_euler(p, t, x);
       let ks = 8.9;
@@ -523,8 +559,9 @@ export const Final_Proj_base =
 
       //Rocks -- must be made FIRST
       this.rocks = [];
-      this.rocks.push(new Rock(vec3(5, 0, -15), vec3(5, 5, 5)));
-      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2, 4, 5)));
+      this.rocks.push(new Rock(vec3(15, 0, -15), vec3(4.2, 4.5, 4.2)));
+      this.rocks.push(new Rock(vec3(-16, 2, 0), vec3(2.8, 4, 4)));
+      this.rocks.push(new Rock(vec3(0, -8, -30), vec3(50, 8, 50)));
 
       const LimbTransformArray = [
         Mat4.translation(0, -2, 3),
@@ -613,12 +650,15 @@ export const Final_Proj_base =
       this.spline = new Hermite_Spline();
       this.sample_count = 1000;
       const tangentScale = 10;
+      let dx = 11;
+      let dy = 3;
+      let dz = -18;
       //Note: must be done to avoid WebGL complaints
-      this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
-      this.spline.add_point(10 + 2, 3, 20 - 3, 50, 0, 0);
-      this.spline.add_point(20 + 2, 3, 10 - 3, 0, 0, -50);
-      this.spline.add_point(10 + 2, 3, 0 - 3, -50, 0, 0);
-      this.spline.add_point(0 + 2, 3, 10 - 3, 0, 0, 50);
+      this.spline.add_point(0 + dx, 3 + dy, 4 + dz, 0, 0, 5);
+      this.spline.add_point(4 + dx, 3 + dy, 8 + dz, 5, 0, 0);
+      this.spline.add_point(8 + dx, 3 + dy, 4 + dz, 0, 0, -5);
+      this.spline.add_point(4 + dx, 3 + dy, 0 + dz, -5, 0, 0);
+      this.spline.add_point(0 + dx, 3 + dy, 4 + dz, 0, 0, 5);
 
       //const curve_func = (t) => vec3(0,0,0);
       const curve_func = (t) => this.spline.get_position(t);
@@ -697,6 +737,7 @@ export const Final_Proj_base =
 
       // draw axis arrows.
       //this.shapes.axis.draw(caller, this.uniforms, Mat4.identity(), this.materials.rgb);
+      this.audio.play();
     }
   });
 
@@ -738,8 +779,10 @@ export class Final_Proj extends Final_Proj_base {
       yellow = color(1, 0.7, 0, 1),
       red = color(1, 0, 0, 1);
     const sand = color(211 / 255, 199 / 255, 162 / 255, 1);
-    const ocean = color(0, 105 / 255, 148 / 255, 0.5);
-    const shellColor = color(226 / 255, 223 / 255, 210 / 255, 0.5);
+    const ocean = color(173/255, 126 / 255, 230 / 255, .9);
+    const lightShellColor = color(226 / 255, 223 / 255, 210 / 255, 0.75);
+    const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
+    const starfishColor = color(250 / 255, 0 / 255, 127 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
     const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
     const white = color(1, 1, 1, 1);
@@ -776,29 +819,60 @@ export class Final_Proj extends Final_Proj_base {
           this.rocks[i].dimensions[2]
         )
       );
-      this.shapes.box.draw(caller, this.uniforms, rock_transform, {
-        ...this.materials.metal,
-        color: shellColor,
-      });
+      // this.shapes.box.draw(caller, this.uniforms, rock_transform, this.materials.cave_texture);
     }
 
-    //random shell
-    let shellTransform = Mat4.translation(-5, 1, -15)
+    //random shells
+    let firstShellTransform = Mat4.translation(-5, 1, -15)
       .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
-      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0));
-    this.shapes.shell.draw(caller, this.uniforms, shellTransform, {
+      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(.8, .8, .8));
+    this.shapes.shell.draw(caller, this.uniforms, firstShellTransform, {
       ...this.materials.metal,
-      color: shellColor,
+      color: lightShellColor,
     });
 
-    // draw fishy, topPos is location of re
+    let secondShellTransform = Mat4.translation(-15, 1, -20)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI / 2, 1, 0, 0))
+      .times(Mat4.scale(1.1, 1.1, 1.1));
+    this.shapes.shell2.draw(caller, this.uniforms, secondShellTransform, {
+      ...this.materials.metal,
+      color: darkShellColor,
+    });
+
+    let thirdShellTransform = Mat4.translation(18, 1, -9)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(2*Math.PI / 3, 0, 1, 0))
+      .times(Mat4.scale(.3, .3, .3));
+    this.shapes.shell.draw(caller, this.uniforms, thirdShellTransform, {
+      ...this.materials.metal,
+      color: darkShellColor,
+    });
+
+    //starfish!
+    let starfishTransform = Mat4.translation(10, 1, 0)
+      .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
+      .times(Mat4.rotation(-Math.PI / 2, 0, 1, 0))
+      .times(Mat4.scale(1.2, 1.2, 1.2));
+    this.shapes.starfish.draw(caller, this.uniforms, starfishTransform, {
+      ...this.materials.metal,
+      color: starfishColor,
+    });
+
+
+    // draw fish on rock, topPos is location of spline
     const spline_transform = Mat4.identity();
-    this.curve.draw(caller, this.uniforms, spline_transform);
+    //this.curve.draw(caller, this.uniforms, spline_transform);
 
     var currT = ((this.t + 5) % 5) / 5;
     const topPos = this.spline.get_position(currT);
 
-    this.shapes.ball.draw(caller, this.uniforms, Mat4.translation(...topPos), {
+    const fish_transform = Mat4.translation(...topPos)
+    .times(Mat4.rotation(Math.PI / 2, 0, 0, 1))
+    .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
+
+    this.shapes.fish.draw(caller, this.uniforms, fish_transform, {
       ...this.materials.plastic,
       color: ocean,
     });
@@ -1081,6 +1155,29 @@ export class Final_Proj extends Final_Proj_base {
       color: black,
     });
 
+    //draw cave
+
+    let model_transform_cave1 = Mat4.translation(15, 2, -14).times(Mat4.scale(5.5, 3.5, 5.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_cave1, this.materials.cave_texture);
+
+    let model_transform_small1 = Mat4.translation(12, 0, -10).times(Mat4.scale(1.5, 1, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small1, this.materials.cave_texture);
+
+    let model_transform_small2 = Mat4.translation(10.5, 0.4, -11).times(Mat4.scale(1.5, .75, 1));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small2, this.materials.cave_texture);
+
+    let model_transform_small3 = Mat4.translation(20.5, 0.4, -13).times(Mat4.scale(2.5, 1.75, 2));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_small3, this.materials.cave_texture);
+
+    let model_transform_cave2 = Mat4.translation(-16, 2, 0).times(Mat4.scale(3.5, 4.5, 5.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_cave2, this.materials.cave_texture);
+
+    let model_transform_med1 = Mat4.translation(-12, 0, 0).times(Mat4.scale(1.75, 2, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_med1, this.materials.cave_texture);
+
+    let model_transform_med2 = Mat4.translation(-15, 0.4, 4).times(Mat4.scale(1.5, 2, 1.5));
+    this.shapes.cave.draw(caller, this.uniforms, model_transform_med2, this.materials.cave_texture);
+
     // draw coral
     let model_transform = Mat4.scale(5, 5, 5);
 
@@ -1140,55 +1237,55 @@ export class Final_Proj extends Final_Proj_base {
       caller,
       this.uniforms,
       branch1_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch2_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch3_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch4_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch5_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch6_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch7_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch8_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch9_model,
-      this.materials.plastic
+      this.materials.pink_coral
     );
 
     model_transform = Mat4.scale(5, 5, 5);
@@ -1249,55 +1346,55 @@ export class Final_Proj extends Final_Proj_base {
       caller,
       this.uniforms,
       branch1_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch2_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch3_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch4_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch5_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch6_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch7_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch8_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
     this.shapes.box.draw(
       caller,
       this.uniforms,
       branch9_model,
-      this.materials.plastic
+      this.materials.blue_coral
     );
   }
 
