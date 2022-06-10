@@ -799,7 +799,7 @@ export class Final_Proj extends Final_Proj_base {
     const darkShellColor = color(247 / 255, 200 / 255, 194 / 255, 0.75);
     const starfishColor = color(250 / 255, 0 / 255, 127 / 255, 0.75);
     const seaweedColor = color(60 / 255, 130 / 255, 80 / 255, 1);
-    const octoColor = color(135 / 255, 81 / 255, 109 / 255, 0.5);
+    const octoColor = color(135 / 255, 81 / 255, 109 / 255, 1);
     const conchColor = color(256 / 255, 127 / 255, 80 / 255, 0.5);
 
     const orangeFish = color(255 / 255, 179 / 255, 71 / 255, 0.8)
