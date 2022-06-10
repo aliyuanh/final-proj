@@ -935,7 +935,7 @@ export class Final_Proj extends Final_Proj_base {
     });
 
     let x_trans = this.t % 75 - 45;
-    const fish2_transform = Mat4.translation(x_trans, 10, -15)
+    const fish2_transform = Mat4.translation(x_trans, .5 * Math.cos(this.t) + 10, -15)
     .times(Mat4.rotation(-Math.PI / 2, 0, 0, 1))
     .times(Mat4.rotation(-Math.PI / 2, 0, 1, 0));
 
@@ -945,7 +945,7 @@ export class Final_Proj extends Final_Proj_base {
     });
 
     let x_trans1 = -1 * (this.t % 80) + 40;
-    const fish3_transform = Mat4.translation(x_trans1, 25, -30)
+    const fish3_transform = Mat4.translation(x_trans1, Math.sin(this.t / 2) + 25, -30)
     .times(Mat4.rotation(Math.PI / 2, 0, 0, 1))
     .times(Mat4.rotation(Math.PI / 2, 0, 1, 0));
 
