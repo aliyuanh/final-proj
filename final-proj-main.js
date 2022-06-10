@@ -432,7 +432,7 @@ const Limb = class Limb {
             //we have collided! now determine which direction to hit the particle in...
             //console.log("collision!!");
             let diff = particlePos.minus(rock.position);
-            diff = diff.times(10);
+            diff = diff.times(25);
             this.particles[i].apply_force(diff);
           }
         }
@@ -534,6 +534,15 @@ export const Final_Proj_base =
         specularity: 1,
         color: color(173/255, 216/255, 230/255, 1),
         texture: new Texture("assets/bluecoral.jpeg")
+      };
+
+      this.materials.bubbles_rainbow = {
+        shader: phong,
+        ambient: 0.2,
+        diffusivity: 1,
+        specularity: 1,
+        color: color(21/255, 98/255, 220/255, 0.4),
+        texture: new Texture("assets/rainbow_fish.png", "LINEAR_MIPMAP_LINEAR")
       };
 
       this.audio = new Audio("assets/somethingfishy.mp3");
@@ -676,12 +685,63 @@ export const Final_Proj_base =
       this.limb_transf = [];
 
       this.camera_position = vec3(0, 10, -10);
+
+      this.bubble_height = 0;
+      this.bubble_start = true;
+      this.bubble_time = 0;
     }
 
     computeMovement(target) {
       if (this.octopus != null) {
         this.octopus.updateOctopus(target, 0);
       }
+    }
+
+    getRandomNum(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+    // getRandomNum() {
+    //     return Math.random();
+    // }
+
+    draw_bubble(shapes, caller, uniforms, initial_model) {
+        let bubble_model = initial_model.times(Mat4.translation(0.5, this.bubble_time, 0)).times(Mat4.scale(.5,.5,.5));
+        if (this.bubble_start) {
+            this.r = [this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24),this.getRandomNum(-24, 24)];
+            this.r1 = this.getRandomNum(-24, 24);
+            this.r2 = this.getRandomNum(-24, 24);
+            this.r3 = this.getRandomNum(-24, 24);
+            this.r4 = this.getRandomNum(-24, 24);
+            this.r5 = this.getRandomNum(-24, 24);
+            this.r6 = this.getRandomNum(-24, 24);
+            this.r7 = this.getRandomNum(-24, 24);
+            this.r8 = this.getRandomNum(-24, 24);
+
+            console.log("started ubble")
+        }
+        this.bubble_start = false;
+
+        // find min
+        let min = 25;
+        for (let i = 0; i < this.r.length; i++) {
+            if (this.r[i] < min) {
+                min = this.r[i];
+            }
+        }
+
+        if (min/2 + this.bubble_time > 15) {
+            this.bubble_time = 0;
+            this.bubble_start = true;
+        }
+
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[0], this.bubble_time + this.r[6]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[1], this.bubble_time + this.r[4]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[2], this.bubble_time + this.r[3]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[3], this.bubble_time + this.r[2]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[4], this.bubble_time + this.r[1]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[5], this.bubble_time + this.r[5]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[6], this.bubble_time + this.r[0]/2, 0)), this.materials.bubbles_rainbow);
+        shapes.ball.draw(caller, uniforms, bubble_model.times(Mat4.translation(this.r[7], this.bubble_time + this.r[7]/2, 0)), this.materials.bubbles_rainbow);
     }
 
     render_animation(caller) {
@@ -723,6 +783,9 @@ export const Final_Proj_base =
       // *** Lights: *** Values of vector or point lights.  They'll be consulted by
       // the shader when coloring shapes.  See Light's class definition for inputs.
       const t = (this.t = this.uniforms.animation_time / 1000);
+      const dt = (this.dt = this.uniforms.animation_delta_time / 1000);
+
+      this.bubble_time += dt;
 
       // const light_position = Mat4.rotation( angle,   1,0,0 ).times( vec4( 0,-1,1,0 ) ); !!!
       // !!! Light changed here
@@ -860,6 +923,8 @@ export class Final_Proj extends Final_Proj_base {
       color: starfishColor,
     });
 
+    // draw bubbles
+    this.draw_bubble(this.shapes, caller, this.uniforms, Mat4.identity(), t);
 
     // draw fish on rock, topPos is location of spline
     const spline_transform = Mat4.identity();
