@@ -695,7 +695,6 @@ export const Final_Proj_base =
         this.sample_count,
         color(1, 0, 0, 1)
       );
-      console.log(this.curve);
 
       // for ik octopus
       this.ik = false;
@@ -736,7 +735,6 @@ export const Final_Proj_base =
             this.r7 = this.getRandomNum(-24, 24);
             this.r8 = this.getRandomNum(-24, 24);
 
-            console.log("started ubble")
         }
         this.bubble_start = false;
 
@@ -1064,41 +1062,41 @@ export class Final_Proj extends Final_Proj_base {
           });
         }
       }
-    this.octopusPosition = this.octopusPosition.times(this.octopusDirection);
-    console.log("new octo position: " + vec3(this.octopusPosition[0][3], this.octopusPosition[1][3], this.octopusPosition[2][3]));
-    console.log("camera position " + this.camera_position);
+        this.octopusPosition = this.octopusPosition.times(this.octopusDirection);
+        // console.log("new octo position: " + vec3(this.octopusPosition[0][3], this.octopusPosition[1][3], this.octopusPosition[2][3]));
+        // console.log("camera position " + this.camera_position);
 
-    if (this.octopusPosition[1][3]>(this.camera_position[1]+6)) {
-        this.camera_position = vec3(this.camera_position[0], this.camera_position[1]+8, this.camera_position[2]);
-        Shader.assign_camera(
-            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
-            this.uniforms
-        );
-    }
-
-    if (this.octopusPosition[1][3]<(this.camera_position[1]-4)) {
-        this.camera_position = vec3(this.camera_position[0], this.camera_position[1]-8, this.camera_position[2]);
-        Shader.assign_camera(
-            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
-            this.uniforms
-        );
-    }
-
-    if (this.octopusPosition[0][3]>(this.camera_position[0]+6)) {
-            this.camera_position = vec3(this.camera_position[0]+8, this.camera_position[1], this.camera_position[2]);
+        if (this.octopusPosition[1][3]>(this.camera_position[1]+6)) {
+            this.camera_position = vec3(this.camera_position[0], this.camera_position[1]+8, this.camera_position[2]);
             Shader.assign_camera(
                 Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
                 this.uniforms
             );
-    }
+        }
 
-    if (this.octopusPosition[0][3]<(this.camera_position[0]-6)) {
-        this.camera_position = vec3(this.camera_position[0]-8, this.camera_position[1], this.camera_position[2]);
-        Shader.assign_camera(
-            Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
-            this.uniforms
-        );
-    }
+        if (this.octopusPosition[1][3]<(this.camera_position[1]-4)) {
+            this.camera_position = vec3(this.camera_position[0], this.camera_position[1]-8, this.camera_position[2]);
+            Shader.assign_camera(
+                Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+                this.uniforms
+            );
+        }
+
+        if (this.octopusPosition[0][3]>(this.camera_position[0]+6)) {
+                this.camera_position = vec3(this.camera_position[0]+8, this.camera_position[1], this.camera_position[2]);
+                Shader.assign_camera(
+                    Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+                    this.uniforms
+                );
+        }
+
+        if (this.octopusPosition[0][3]<(this.camera_position[0]-6)) {
+            this.camera_position = vec3(this.camera_position[0]-8, this.camera_position[1], this.camera_position[2]);
+            Shader.assign_camera(
+                Mat4.look_at(vec3(5, 10, 30), this.camera_position, vec3(0, 1, 0)),
+                this.uniforms
+            );
+        }
 
 
       //apply octopus movement to all the limbs too
@@ -1188,7 +1186,9 @@ export class Final_Proj extends Final_Proj_base {
         color: octoColor,
       });
 
-      this.computeMovement(topPos);
+      // position for octopus' end effectors to move to
+      this.computeMovement(vec3(this.octopusPosition[0][3] + 1, this.octopusPosition[1][3]-4, this.octopusPosition[2][3] + 1));
+
     }
 
     // draw seaweed

@@ -12,7 +12,6 @@ const shapes = {
 
 export const Articulated_Octopus = class Articulated_Octopus {
   constructor(torso_loc, particles_transform, limbs_transform, octopus_shape) {
-    const sphere_shape = shapes.sphere;
     const box_shape = shapes.box;
 
     // torso node
@@ -30,7 +29,7 @@ export const Articulated_Octopus = class Articulated_Octopus {
     this.middle_arms = [];
     this.lower_arms = [];
 
-    for (let i = 0; i < particles_transform.length; i++) {
+    for (let i = 0; i < 8; i++) {
       let u_arm_transform = limbs_transform[i][0];
       let m_arm_transform = limbs_transform[i][1];
       let l_arm_transform = limbs_transform[i][2];
@@ -41,20 +40,11 @@ export const Articulated_Octopus = class Articulated_Octopus {
       let lower_loc = particles_transform[i][3]
 
       let upper_node = new Node("upper " + i, box_shape, u_arm_transform);
-      let body_arc = new Arc(
-        "body " + i,
-        this.torso_node,
-        upper_node,
-        body_loc
-      );
+      let body_arc = new Arc("body " + i, this.torso_node, upper_node, body_loc);
 
-      let middle_node = new Node(
-        "middle " + i,
-        box_shape,
-        m_arm_transform
-      );
-
+      let middle_node = new Node("middle " + i, box_shape, m_arm_transform);
       let upper_arc = new Arc("upper " + i, upper_node, middle_node, upper_loc);
+
       let lower_node = new Node("lower " + i, box_shape, l_arm_transform);
       let middle_arc = new Arc("middle " + i, middle_node, lower_node, mid_loc);
       
@@ -71,7 +61,7 @@ export const Articulated_Octopus = class Articulated_Octopus {
       middle_node.children_arcs.push(middle_arc);
     }
 
-    this.allowedError = 0.01;
+    this.allowedError = 3;
   }
 
   draw(webgl_manager, uniforms, material) {
@@ -86,31 +76,29 @@ export const Articulated_Octopus = class Articulated_Octopus {
   }
 
   updateArm(i, target, depth, thetas) {
-    let upperRot = Mat4.rotation(thetas[9 * i + 2], 0, 0, 1)
-      .times(Mat4.rotation(thetas[9 * i + 1], 0, 1, 0))
-      .times(Mat4.rotation(thetas[9 * i], 1, 0, 0));
+    // console.log("update arm " + i);
+    let upperRot = Mat4.rotation(thetas[7 * i + 2], 0, 0, 1)
+      .times(Mat4.rotation(thetas[7 * i + 1], 0, 1, 0))
+      .times(Mat4.rotation(thetas[7 * i], 1, 0, 0));
 
-    let middleRot = Mat4.rotation(thetas[9 * i + 5], 0, 0, 1)
-      .times(Mat4.rotation(thetas[9 * i + 4], 0, 1, 0))
-      .times(Mat4.rotation(thetas[9 * i + 3], 1, 0, 0));
+    let middleRot = Mat4.rotation(thetas[7 * i + 4], 0, 1, 0)
+      .times(Mat4.rotation(thetas[7 * i + 3], 1, 0, 0));
 
-    let lowerRot = Mat4.rotation(thetas[9 * i + 8], 0, 0, 1)
-      .times(Mat4.rotation(thetas[9 * i + 7], 0, 1, 0))
-      .times(Mat4.rotation(thetas[9 * i + 6], 1, 0, 0));
-
-    // NOTE: commented out various lines so observe individual angle changes
+    let lowerRot = Mat4.rotation(thetas[7 * i + 6], 0, 0, 1)
+      .times(Mat4.rotation(thetas[7 * i + 5], 0, 1, 0));
     
-    // this.body_arcs[i].articulation_matrix =
-    //   this.body_arcs[i].articulation_matrix.times(upperRot);
+    this.body_arcs[i].articulation_matrix =
+      this.body_arcs[i].articulation_matrix.times(upperRot);
 
     this.upper_arcs[i].articulation_matrix =
       this.upper_arcs[i].articulation_matrix.times(middleRot);
 
-    // this.middle_arcs[i].articulation_matrix =
-    //   this.middle_arcs[i].articulation_matrix.times(lowerRot);
+    this.middle_arcs[i].articulation_matrix =
+      this.middle_arcs[i].articulation_matrix.times(lowerRot);
 
-    // calcalate error and keep going
+    // calculate error and keep going
     let endEffector = this.getEndEffector(this.root, Mat4.identity(), i);
+    console.log("get end effector called")
     const endEffPos = vec3(
       endEffector[0][3],
       endEffector[1][3],
@@ -124,20 +112,24 @@ export const Articulated_Octopus = class Articulated_Octopus {
     if (error > this.allowedError && depth < 10) {
       this.updateArm(i, target, depth + 1, thetas);
     }
+    else {
+      console.log('CONVERGEDDDDDDD to new position: ' + endEffPos)
+    }
   }
 
   updateOctopus(target, depth) {
     let iden = Vector.create(1);
     let newThetas = this.computeJacobian(target);
-    // let thetas = [0, 0, 0, 0, 0, 0, 0]; //7 0's
-    let thetas = new Array(8 * 3 * 3).fill(0);
+
+    let thetas = new Array(8 * 7).fill(0);
     for (let i = 0; i < thetas.length; i++) {
       thetas[i] = newThetas[i]
     }
+
+
     // go through each of 8 arms
 
-    // NOTE: change end of i to 1 so only one arm moves
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 8; i++) {
       this.updateArm(i, target, depth, thetas);
     }
   }
@@ -154,6 +146,7 @@ export const Articulated_Octopus = class Articulated_Octopus {
     pos = pos.times(this.body_arcs[i].location_matrix);
 
     let body_arc_position = vec3(pos[0][3], pos[1][3], pos[2][3]);
+
     let r = endEffPos.minus(body_arc_position);
     let row1 = vec3(1, 0, 0).cross(r);
     let row2 = vec3(0, 1, 0).cross(r);
@@ -164,14 +157,12 @@ export const Articulated_Octopus = class Articulated_Octopus {
     r = endEffPos.minus(upper_arc_position);
     let row4 = vec3(1, 0, 0).cross(r);
     let row5 = vec3(0, 1, 0).cross(r);
-    let row6 = vec3(0, 0, 1).cross(r);
 
     pos = pos.times(this.middle_arcs[i].location_matrix);
     let middle_arc_position = vec3(pos[0][3], pos[1][3], pos[2][3]);
     r = endEffPos.minus(middle_arc_position);
-    let row7 = vec3(1, 0, 0).cross(r);
-    let row8 = vec3(0, 1, 0).cross(r);
-    let row9 = vec3(0, 0, 1).cross(r);
+    let row6 = vec3(0, 1, 0).cross(r);
+    let row7 = vec3(0, 0, 1).cross(r);
 
     let J = Matrix.create(
       [row1[0], row1[1], row1[2]],
@@ -180,15 +171,13 @@ export const Articulated_Octopus = class Articulated_Octopus {
       [row4[0], row4[1], row4[2]],
       [row5[0], row5[1], row5[2]],
       [row6[0], row6[1], row6[2]],
-      [row7[0], row7[1], row7[2]],
-      [row8[0], row8[1], row8[2]],
-      [row9[0], row9[1], row9[2]]
+      [row7[0], row7[1], row7[2]]
     ).transpose
 
     let JPlus = J.pseudoInverse();
 
     let error = target.minus(endEffPos);
-    let k = 0.15;
+    let k = 0.001;
     let dx = error.times(k);
     let dxArray = Matrix.create([dx[0], dx[1], dx[2]]).transpose;
     let dTheta = JPlus.mult(dxArray);
@@ -205,7 +194,7 @@ export const Articulated_Octopus = class Articulated_Octopus {
 
     let d = []
     for (let i = 0; i < dthetas.length; i++) {
-      for (let j = 0; j < 9; j++) {
+    for (let j = 0; j < 7; j++) {
         d.push(dthetas[i][j][0]);
       }
     }
@@ -213,7 +202,6 @@ export const Articulated_Octopus = class Articulated_Octopus {
   }
 
   getEndEffector(arc, matrix, i) {
-    //this.matrix_stack = [];
     let loc = this.root.location_matrix;
     let myarc = this.root.articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
@@ -226,9 +214,7 @@ export const Articulated_Octopus = class Articulated_Octopus {
     loc = this.middle_arcs[i].location_matrix;
     myarc = this.middle_arcs[i].articulation_matrix;
     matrix.post_multiply(loc.times(myarc));
-    // //account for hand length
-    // matrix.post_multiply(Mat4.translation(0.5, 0, 0));
-    // //console.log(matrix);
+
     return matrix;
   }
 
@@ -250,21 +236,6 @@ export const Articulated_Octopus = class Articulated_Octopus {
         this._rec_draw(next_arc, matrix, webgl_manager, uniforms, material);
         matrix = this.matrix_stack.pop();
       }
-    }
-  }
-
-  debug(arc = null) {
-    if (arc === null) arc = this.root;
-
-    if (arc !== this.root) {
-      arc.articulation_matrix = arc.articulation_matrix.times(
-        Mat4.rotation(0.02, 0, 0, 1)
-      );
-    }
-
-    const node = arc.child_node;
-    for (const next_arc of node.children_arcs) {
-      this.debug(next_arc);
     }
   }
 };
